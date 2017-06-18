@@ -633,7 +633,7 @@ static int data_training(u32 channel,
 	u32 i, tmp;
 	u32 obs_0, obs_1, obs_2, obs_3, obs_err = 0;
 	u32 rank = sdram_params->ch[channel].rank;
-	u32 reg_value;
+	u32 reg_value = 0;
 
 	/* PHY_927 PHY_PAD_DQS_DRIVE  RPULL offset_22 */
 	setbits_le32(&denali_phy[927], (1 << 22));
@@ -744,11 +744,11 @@ static int data_training(u32 channel,
 	if ((training_flag & PI_READ_GATE_TRAINING) == PI_READ_GATE_TRAINING) {
 
 		/*
-		 * The differential signal of DQS need keep low level
+		 * The differential signal of DQS needs to keep low level
 		 * before gate training. RPULL will connect 4Kn from PADP
 		 * to VSS and a 4Kn from PADN to VDDQ to ensure it.
-		 * But if it have PHY side ODT connect at this time,
-		 * it will change the DQS signal level.So disable PHY
+		 * But if it has PHY side ODT connect at this time,
+		 * it will change the DQS signal level. So disable PHY
 		 * side ODT before gate training and restore ODT state
 		 * after gate training.
 		 */
@@ -809,7 +809,6 @@ static int data_training(u32 channel,
 		clrbits_le32(&denali_pi[80], 0x3 << 24);
 
 		if (sdram_params->dramtype != LPDDR4) {
-
 			/*
 			 * phy_dqs_tsel_enable_X 3bits
 			 * DENALI_PHY_6/134/262/390 offset_24
