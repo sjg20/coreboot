@@ -70,4 +70,3 @@ void agesa_postcar(struct sysinfo *cb)
 		post_code(0x62);
 	}
 }
-
