@@ -24,6 +24,10 @@ General changes
   from very slow flash to ERAM, allow adding a stub that decompresses the
   bootblock into ERAM to minimize the amount of flash reads
 
+Added mainboards
+----------------
+* Lenovo W530                                          Intel Ivybridge
+
 Toolchain
 ---------
 
