@@ -2,7 +2,7 @@
  * This file is part of the coreboot project.
  *
  * Copyright (C) 2012 - 2017 Advanced Micro Devices, Inc.
- * Copyright (C) 2018 Kyösti Mälkki
+ * Copyright (C) 2018 - 2019 Kyösti Mälkki
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -87,7 +87,7 @@ static void *create_struct(AMD_INTERFACE_PARAMS *interface_struct)
 	return interface_struct->NewStructPtr;
 }
 
-AGESA_STATUS agesawrapper_amdinitreset(void)
+static AGESA_STATUS amd_init_reset(void)
 {
 	AGESA_STATUS status;
 	AMD_RESET_PARAMS _ResetParams;
@@ -112,7 +112,7 @@ AGESA_STATUS agesawrapper_amdinitreset(void)
 	return status;
 }
 
-AGESA_STATUS agesawrapper_amdinitearly(void)
+static AGESA_STATUS amd_init_early(void)
 {
 	AGESA_STATUS status;
 	AMD_INTERFACE_PARAMS AmdParamStruct = {
@@ -169,7 +169,7 @@ static void print_init_post_settings(AMD_POST_PARAMS *parms)
 					uma_size / MiB, uma_start);
 }
 
-AGESA_STATUS agesawrapper_amdinitpost(void)
+static AGESA_STATUS amd_init_post(void)
 {
 	AGESA_STATUS status;
 	AMD_INTERFACE_PARAMS AmdParamStruct = {
@@ -224,7 +224,7 @@ AGESA_STATUS agesawrapper_amdinitpost(void)
 	return status;
 }
 
-AGESA_STATUS agesawrapper_amdinitenv(void)
+static AGESA_STATUS amd_init_env(void)
 {
 	AGESA_STATUS status;
 	AMD_INTERFACE_PARAMS AmdParamStruct = {
@@ -274,7 +274,7 @@ void *agesawrapper_getlateinitptr(int pick)
 	}
 }
 
-AGESA_STATUS agesawrapper_amdinitmid(void)
+static AGESA_STATUS amd_init_mid(void)
 {
 	AGESA_STATUS status;
 	AMD_INTERFACE_PARAMS AmdParamStruct = {
@@ -301,7 +301,7 @@ AGESA_STATUS agesawrapper_amdinitmid(void)
 	return status;
 }
 
-AGESA_STATUS agesawrapper_amdinitlate(void)
+static AGESA_STATUS amd_init_late(void)
 {
 	AGESA_STATUS Status;
 	AMD_INTERFACE_PARAMS AmdParamStruct = {
@@ -356,7 +356,7 @@ AGESA_STATUS amd_late_run_ap_task(AP_EXE_PARAMS *ApExeParams)
 	return AmdLateRunApTask(ApExeParams);
 }
 
-AGESA_STATUS agesawrapper_amdinitrtb(void)
+static AGESA_STATUS amd_init_rtb(void)
 {
 	AGESA_STATUS Status;
 	AMD_INTERFACE_PARAMS AmdParamStruct = {
@@ -386,7 +386,7 @@ AGESA_STATUS agesawrapper_amdinitrtb(void)
 	return Status;
 }
 
-AGESA_STATUS agesawrapper_amdinitresume(void)
+static AGESA_STATUS amd_init_resume(void)
 {
 	AGESA_STATUS status;
 	AMD_INTERFACE_PARAMS AmdParamStruct = {
@@ -411,7 +411,7 @@ AGESA_STATUS agesawrapper_amdinitresume(void)
 	return status;
 }
 
-AGESA_STATUS agesawrapper_amds3laterestore(void)
+static AGESA_STATUS amd_s3late_restore(void)
 {
 	AGESA_STATUS Status;
 	AMD_S3LATE_PARAMS _S3LateParams;
@@ -443,7 +443,7 @@ AGESA_STATUS agesawrapper_amds3laterestore(void)
 	return Status;
 }
 
-AGESA_STATUS agesawrapper_amds3finalrestore(void)
+static AGESA_STATUS amd_s3final_restore(void)
 {
 	AGESA_STATUS Status;
 	AMD_S3FINAL_PARAMS _S3FinalParams;
@@ -471,4 +471,56 @@ AGESA_STATUS agesawrapper_amds3finalrestore(void)
 	AmdReleaseStruct(&AmdParamStruct);
 
 	return Status;
+}
+
+static AGESA_STATUS romstage_dispatch(AMD_CONFIG_PARAMS *StdHeader)
+{
+	switch (StdHeader->Func) {
+	case AMD_INIT_RESET:
+		return amd_init_reset();
+	case AMD_INIT_EARLY:
+		return amd_init_early();
+	case AMD_INIT_POST:
+		return amd_init_post();
+	case AMD_INIT_RESUME:
+		return amd_init_resume();
+	default:
+		return AGESA_UNSUPPORTED;
+	}
+}
+
+static AGESA_STATUS ramstage_dispatch(AMD_CONFIG_PARAMS *StdHeader)
+{
+	switch (StdHeader->Func) {
+	case AMD_INIT_ENV:
+		return amd_init_env();
+	case AMD_INIT_MID:
+		return amd_init_mid();
+	case AMD_INIT_LATE:
+		return amd_init_late();
+	case AMD_INIT_RTB:
+		return amd_init_rtb();
+	case AMD_S3LATE_RESTORE:
+		return amd_s3late_restore();
+	case AMD_S3FINAL_RESTORE:
+		return amd_s3final_restore();
+	default:
+		return AGESA_UNSUPPORTED;
+	}
+}
+
+AGESA_STATUS agesa_execute_state(AGESA_STRUCT_NAME func)
+{
+	AGESA_STATUS status = AGESA_UNSUPPORTED;
+	AMD_CONFIG_PARAMS template = {};
+	AMD_CONFIG_PARAMS *StdHeader = &template;
+
+	StdHeader->Func = func;
+
+	if (ENV_ROMSTAGE)
+		status = romstage_dispatch(StdHeader);
+	if (ENV_RAMSTAGE)
+		status = ramstage_dispatch(StdHeader);
+
+	return status;
 }
