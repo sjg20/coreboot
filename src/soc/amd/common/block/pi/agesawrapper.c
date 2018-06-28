@@ -40,34 +40,6 @@ static void *AcpiAlib;
 static void *AcpiIvrs;
 static void *AcpiCrat;
 
-static AGESA_STATUS agesawrapper_readeventlog(uint8_t HeapStatus)
-{
-	AGESA_STATUS Status;
-	EVENT_PARAMS AmdEventParams = {
-		.StdHeader.CalloutPtr = &GetBiosCallout,
-		.StdHeader.HeapStatus = HeapStatus,
-	};
-
-	Status = AmdReadEventLog(&AmdEventParams);
-	if (AmdEventParams.EventClass)
-		printk(BIOS_DEBUG, "AGESA Event Log:\n");
-
-	while (AmdEventParams.EventClass != 0) {
-		printk(BIOS_DEBUG, "  Class = %x, Info = %x,"
-				" Param1 = 0x%x, Param2 = 0x%x"
-				" Param3 = 0x%x, Param4 = 0x%x\n",
-				(u32)AmdEventParams.EventClass,
-				(u32)AmdEventParams.EventInfo,
-				(u32)AmdEventParams.DataParam1,
-				(u32)AmdEventParams.DataParam2,
-				(u32)AmdEventParams.DataParam3,
-				(u32)AmdEventParams.DataParam4);
-		Status = AmdReadEventLog(&AmdEventParams);
-	}
-
-	return Status;
-}
-
 static void *create_struct(AMD_INTERFACE_PARAMS *interface_struct)
 {
 	/* Should clone entire StdHeader here. */
@@ -106,8 +78,6 @@ static AGESA_STATUS amd_init_reset(void)
 	status = AmdInitReset(ResetParams);
 	timestamp_add_now(TS_AGESA_INIT_RESET_DONE);
 
-	if (status != AGESA_SUCCESS)
-		agesawrapper_readeventlog(AmdParamStruct.StdHeader.HeapStatus);
 	AmdReleaseStruct(&AmdParamStruct);
 	return status;
 }
@@ -129,8 +99,6 @@ static AGESA_STATUS amd_init_early(void)
 	status = AmdInitEarly(EarlyParams);
 	timestamp_add_now(TS_AGESA_INIT_EARLY_DONE);
 
-	if (status != AGESA_SUCCESS)
-		agesawrapper_readeventlog(AmdParamStruct.StdHeader.HeapStatus);
 	AmdReleaseStruct(&AmdParamStruct);
 
 	return status;
@@ -217,8 +185,6 @@ static AGESA_STATUS amd_init_post(void)
 
 	print_init_post_settings(PostParams);
 
-	if (status != AGESA_SUCCESS)
-		agesawrapper_readeventlog(PostParams->StdHeader.HeapStatus);
 	AmdReleaseStruct(&AmdParamStruct);
 
 	return status;
@@ -241,8 +207,6 @@ static AGESA_STATUS amd_init_env(void)
 	status = AmdInitEnv(EnvParams);
 	timestamp_add_now(TS_AGESA_INIT_ENV_DONE);
 
-	if (status != AGESA_SUCCESS)
-		agesawrapper_readeventlog(EnvParams->StdHeader.HeapStatus);
 	AmdReleaseStruct(&AmdParamStruct);
 
 	return status;
@@ -294,8 +258,6 @@ static AGESA_STATUS amd_init_mid(void)
 	status = AmdInitMid(MidParams);
 	timestamp_add_now(TS_AGESA_INIT_MID_DONE);
 
-	if (status != AGESA_SUCCESS)
-		agesawrapper_readeventlog(AmdParamStruct.StdHeader.HeapStatus);
 	AmdReleaseStruct(&AmdParamStruct);
 
 	return status;
@@ -325,11 +287,6 @@ static AGESA_STATUS amd_init_late(void)
 	timestamp_add_now(TS_AGESA_INIT_LATE_START);
 	Status = AmdInitLate(LateParams);
 	timestamp_add_now(TS_AGESA_INIT_LATE_DONE);
-
-	if (Status != AGESA_SUCCESS) {
-		agesawrapper_readeventlog(LateParams->StdHeader.HeapStatus);
-		ASSERT(Status == AGESA_SUCCESS);
-	}
 
 	DmiTable = LateParams->DmiTable;
 	AcpiPstate = LateParams->AcpiPState;
@@ -370,11 +327,6 @@ static AGESA_STATUS amd_init_rtb(void)
 	Status = AmdInitRtb(RtbParams);
 	timestamp_add_now(TS_AGESA_INIT_RTB_DONE);
 
-	if (Status != AGESA_SUCCESS) {
-		agesawrapper_readeventlog(AmdParamStruct.StdHeader.HeapStatus);
-		ASSERT(Status == AGESA_SUCCESS);
-	}
-
 	if (save_s3_info(RtbParams->S3DataBlock.NvStorage,
 			 RtbParams->S3DataBlock.NvStorageSize,
 			 RtbParams->S3DataBlock.VolatileStorage,
@@ -404,8 +356,6 @@ static AGESA_STATUS amd_init_resume(void)
 	status = AmdInitResume(InitResumeParams);
 	timestamp_add_now(TS_AGESA_INIT_RESUME_DONE);
 
-	if (status != AGESA_SUCCESS)
-		agesawrapper_readeventlog(AmdParamStruct.StdHeader.HeapStatus);
 	AmdReleaseStruct(&AmdParamStruct);
 
 	return status;
@@ -434,10 +384,6 @@ static AGESA_STATUS amd_s3late_restore(void)
 	Status = AmdS3LateRestore(S3LateParams);
 	timestamp_add_now(TS_AGESA_S3_LATE_DONE);
 
-	if (Status != AGESA_SUCCESS) {
-		agesawrapper_readeventlog(AmdParamStruct.StdHeader.HeapStatus);
-		ASSERT(Status == AGESA_SUCCESS);
-	}
 	AmdReleaseStruct(&AmdParamStruct);
 
 	return Status;
@@ -464,10 +410,6 @@ static AGESA_STATUS amd_s3final_restore(void)
 	Status = AmdS3FinalRestore(S3FinalParams);
 	timestamp_add_now(TS_AGESA_S3_FINAL_DONE);
 
-	if (Status != AGESA_SUCCESS) {
-		agesawrapper_readeventlog(AmdParamStruct.StdHeader.HeapStatus);
-		ASSERT(Status == AGESA_SUCCESS);
-	}
 	AmdReleaseStruct(&AmdParamStruct);
 
 	return Status;
