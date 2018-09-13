@@ -72,12 +72,6 @@ verstage-y += pmutil.c
 verstage-y += spi.c
 verstage-$(CONFIG_UART_DEBUG) += uart.c
 
-ifeq ($(CONFIG_SOC_INTEL_COFFEELAKE),y)
-CPPFLAGS_common += -I$(src)/vendorcode/intel/fsp/fsp2_0/coffeelake
-else
-CPPFLAGS_common += -I$(src)/vendorcode/intel/fsp/fsp2_0/cannonlake
-endif
-
 ifeq ($(CONFIG_SOC_INTEL_CANNONLAKE_PCH_H),y)
 bootblock-y += gpio_cnp_h.c
 romstage-y += gpio_cnp_h.c
