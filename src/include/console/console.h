@@ -16,6 +16,8 @@
 #ifndef CONSOLE_CONSOLE_H_
 #define CONSOLE_CONSOLE_H_
 
+void jump_to_u_boot(const char *whence);
+
 #include <stdint.h>
 #include <arch/cpu.h>
 #include <console/post_codes.h>

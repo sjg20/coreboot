@@ -34,6 +34,7 @@
 #include <vb2_api.h>
 #include <fsp/memory_init.h>
 #include <types.h>
+#include <soc/cpu.h>
 
 static uint8_t temp_ram[CONFIG_FSP_TEMP_RAM_SIZE] __aligned(sizeof(uint64_t));
 
@@ -265,6 +266,62 @@ static uint32_t fsp_memory_settings_version(const struct fsp_header *hdr)
 	return ver;
 }
 
+void jump_to_u_boot(const char *whence)
+{
+	uint8_t *buf = (uint8_t *)0xfef10000;
+	int buf_size = 0x10000;
+	struct cbfsf fh;
+	size_t fsize;
+	int ret;
+	uint32_t compression_algo;
+	size_t decompressed_size;
+	uint32_t type;
+	typedef void (*h_func)(void);
+	h_func func;
+
+	printk(BIOS_INFO, "\n\nLoading U-Boot from '%s'\n", whence);
+
+// 	if (cbfs_boot_locate(&fh, name, &type))
+// 		return NULL;
+	type = CBFS_TYPE_RAW;
+	ret = cbfs_locate_file_in_region(&fh, "COREBOOT", "fallback/payload",
+					 &type);
+	printk(BIOS_INFO, "ret=%d\n", ret);
+	if (ret)
+		die("memory_init.c jump_to_u_boot: Cannot load U-Boot\n");
+// 	fsize = cbfs_boot_load_file("u-boot", buf, buf_size, CBFS_TYPE_SELF);
+	ret = cbfsf_decompression_info(&fh, &compression_algo,
+				       &decompressed_size);
+	if (ret < 0) {
+		printk(BIOS_INFO, "cannot read decomp size: %d\n", ret);
+		die("memory_init.c jump_to_u_boot: decomp fail1");
+	}
+
+	if (decompressed_size > buf_size) {
+		printk(BIOS_INFO, "decompressed_size %zx > buf_size %x, algo %d\n",
+		       decompressed_size, buf_size, compression_algo);
+		die("memory_init.c jump_to_u_boot: decomp fail1");
+	}
+
+	printk(BIOS_INFO, "Loading %zx bytes to %p...\n\n", decompressed_size,
+	       buf);
+	fsize = cbfs_load_and_decompress(&fh.data, 0,
+					 region_device_sz(&fh.data),
+					 buf, buf_size, compression_algo);
+	if (!fsize)
+		die("memory_init.c jump_to_u_boot: buffer too small?");
+
+//	size = cbfs_boot_load_file("u-boot", buf, buf_size, CBFS_TYPE_RAW);
+	printk(BIOS_INFO, "Loaded %zx bytes\n\n", fsize);
+	func = (h_func)buf;
+	print_buffer((unsigned long)buf, buf, 4, 0x20, 0);
+// 	flush_l1d_to_l2();
+	printk(BIOS_INFO, "Check CONFIG_DEBUG_UART_BASE=%#x\n",
+	       CONFIG_CONSOLE_UART_BASE_ADDRESS);
+	printk(BIOS_INFO, "Jumping to U-Boot\n");
+	func();
+}
+
 static void do_fsp_memory_init(struct fsp_header *hdr, bool s3wake,
 					const struct memranges *memmap)
 {
@@ -274,6 +331,8 @@ static void do_fsp_memory_init(struct fsp_header *hdr, bool s3wake,
 	FSPM_ARCH_UPD *arch_upd;
 	uint32_t fsp_version;
 
+	if (0)
+		jump_to_u_boot("do_fsp_memory_init");
 	post_code(POST_MEM_PREINIT_PREP_START);
 
 	fsp_version = fsp_memory_settings_version(hdr);
@@ -309,6 +368,10 @@ static void do_fsp_memory_init(struct fsp_header *hdr, bool s3wake,
 	/* Call FspMemoryInit */
 	fsp_raminit = (void *)(hdr->image_base + hdr->memory_init_entry_offset);
 	fsp_debug_before_memory_init(fsp_raminit, upd, &fspm_upd);
+
+	//printk(BIOS_INFO, "hdr->image_base at %p\n", hdr->image_base);
+	if (0)
+		jump_to_u_boot("before raminit");
 
 	post_code(POST_FSP_MEMORY_INIT);
 	timestamp_add_now(TS_FSP_MEMORY_INIT_START);
@@ -392,6 +455,10 @@ void fsp_memory_init(bool s3wake)
 	struct memranges memmap;
 	struct range_entry prog_ranges[2];
 
+	if (0)
+		jump_to_u_boot("fsp_memory_init");
+	if (CONFIG(ELOG_BOOT_COUNT) && !s3wake)
+		boot_count_increment();
 	elog_boot_notify(s3wake);
 
 	if (cbfs_boot_locate(&file_desc, name, NULL)) {
