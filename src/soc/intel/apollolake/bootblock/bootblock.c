@@ -106,6 +106,8 @@ void bootblock_soc_early_init(void)
 	enable_pm_timer_emulation();
 
 	fast_spi_early_init(SPI_BASE_ADDRESS);
+	//console_init();
+// 	jump_to_u_boot("bootblock bootblock_soc_early_init() 5");
 
 	fast_spi_cache_bios_region();
 
@@ -113,7 +115,9 @@ void bootblock_soc_early_init(void)
 	pmc_gpe_init();
 
 	/* Program TCO Timer Halt */
+//	//jump_to_u_boot("bootblock bootblock_soc_early_init() 8a");
 	tco_configure();
+// 	jump_to_u_boot("bootblock bootblock_soc_early_init() 9a");
 
 	/* Use Nx and paging to prevent the frontend from writing back dirty
 	 * cache-as-ram lines to backing store that doesn't exist when the L1I

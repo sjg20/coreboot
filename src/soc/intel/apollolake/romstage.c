@@ -197,6 +197,8 @@ void mainboard_romstage_entry(void)
 	struct chipset_power_state *ps = pmc_get_power_state();
 	const void *new_var_data;
 
+	//jump_to_u_boot("car_stage_entry");
+
 	soc_early_romstage_init();
 
 	s3wake = pmc_fill_power_state(ps) == ACPI_S3;
