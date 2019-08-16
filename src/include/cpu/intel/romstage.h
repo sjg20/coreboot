@@ -3,7 +3,7 @@
 
 #include <arch/cpu.h>
 
-void mainboard_romstage_entry(unsigned long bist);
+void mainboard_romstage_entry(void);
 
 void platform_enter_postcar(void);
 

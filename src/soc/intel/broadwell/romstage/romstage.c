@@ -63,7 +63,7 @@ void platform_enter_postcar(void)
 }
 
 /* Entry from cpu/intel/car/romstage.c. */
-void mainboard_romstage_entry(unsigned long bist)
+void mainboard_romstage_entry(void)
 {
 	struct romstage_params rp = { 0 };
 

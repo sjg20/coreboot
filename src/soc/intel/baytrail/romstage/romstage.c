@@ -97,10 +97,9 @@ static void spi_init(void)
 }
 
 /* Entry from cache-as-ram.inc. */
-static void romstage_main(uint64_t tsc, uint32_t bist)
+static void romstage_main(uint64_t tsc)
 {
 	struct romstage_params rp = {
-		.bist = bist,
 		.mrc_params = NULL,
 	};
 
@@ -139,7 +138,7 @@ static void romstage_main(uint64_t tsc, uint32_t bist)
  */
 asmlinkage void bootblock_c_entry_bist(uint64_t base_timestamp, uint32_t bist)
 {
-	romstage_main(base_timestamp, bist);
+	romstage_main(base_timestamp);
 }
 
 static struct chipset_power_state power_state;
