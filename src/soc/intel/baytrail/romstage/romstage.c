@@ -35,6 +35,7 @@
 #include <soc/gpio.h>
 #include <soc/iomap.h>
 #include <soc/lpc.h>
+#include <soc/msr.h>
 #include <soc/pci_devs.h>
 #include <soc/pmc.h>
 #include <soc/romstage.h>
@@ -113,7 +114,8 @@ static void romstage_main(uint64_t tsc)
 
 	tco_disable();
 
-	byt_config_com1_and_enable();
+	if (CONFIG(ENABLE_BUILTIN_COM1))
+		byt_config_com1_and_enable();
 
 	console_init();
 
