@@ -134,4 +134,8 @@ Documentation/_build
 doxygen/*
 
 # blobs needed to build some boards, not under git control
+3rdparty/arm-trusted-firmware/
 3rdparty/blobs/
+3rdparty/intel-microcode/
+3rdparty/libgfxinit/
+3rdparty/libhwbase/
