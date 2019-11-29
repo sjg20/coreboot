@@ -20,6 +20,7 @@ config BOARD_GOOGLE_BASEBOARD_GLADOS
 	select SOC_INTEL_SKYLAKE
 	select SYSTEM_TYPE_LAPTOP
 	select MAINBOARD_HAS_LIBGFXINIT
+	select MAINBOARD_NO_FSP_GOP if !BOARD_GOOGLE_GLADOS
 	select HAVE_SPD_IN_CBFS
 
 if BOARD_GOOGLE_BASEBOARD_GLADOS
@@ -60,9 +61,6 @@ config VARIANT_DIR
 
 config OVERRIDE_DEVICETREE
 	default "variants/\$(CONFIG_VARIANT_DIR)/overridetree.cb"
-
-config INTEL_GMA_VBT_FILE
-	default "3rdparty/fsp/KabylakeFspBinPkg/SampleCode/Vbt/Vbt.bin"
 
 config TPM_PIRQ
 	hex
