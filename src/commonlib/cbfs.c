@@ -230,6 +230,8 @@ int cbfs_locate(struct cbfsf *fh, const struct region_device *cbfs,
 			rdev_relative_offset(cbfs, &fh->metadata),
 			region_device_sz(&fh->data));
 
+// 		jump_to_u_boot("ramstage");
+
 		/* Success. */
 		return 0;
 	}

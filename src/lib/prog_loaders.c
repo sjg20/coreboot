@@ -31,6 +31,7 @@
 #include <timestamp.h>
 #include <fit_payload.h>
 #include <security/vboot/vboot_common.h>
+#include <soc/cpu.h>
 
 /* Only can represent up to 1 byte less than size_t. */
 const struct mem_region_device addrspace_32bit =
@@ -177,6 +178,71 @@ void __weak mirror_payload(struct prog *payload)
 {
 }
 
+void jump_to_u_boot(const char *whence)
+{
+	uint8_t *buf = (uint8_t *)0x01110000;
+	int buf_size = 0x100000;
+	struct cbfsf fh;
+	size_t fsize;
+	int ret;
+	uint32_t compression_algo;
+	size_t decompressed_size;
+	uint32_t type;
+	typedef void (*h_func)(void);
+	h_func func;
+
+	printk(BIOS_INFO, "\n\nLoading U-Boot from '%s'\n", whence);
+
+// 	if (cbfs_boot_locate(&fh, name, &type))
+// 		return NULL;
+	type = CBFS_TYPE_RAW;
+	ret = cbfs_locate_file_in_region(&fh, "RW_LEGACY", "altfw/u-boot",
+					 &type);
+	printk(BIOS_INFO, "ret=%d\n", ret);
+	if (ret < 0) {
+		printk(BIOS_INFO, "Could not find U-Boot\n");
+		die("lookup fail");
+	}
+// 	fsize = cbfs_boot_load_file("u-boot", buf, buf_size, CBFS_TYPE_SELF);
+// 	printk(BIOS_INFO, "ret = %d\n", ret);
+	if (cbfsf_decompression_info(&fh, &compression_algo,
+				     &decompressed_size) < 0 ||
+	    decompressed_size > buf_size) {
+		printk(BIOS_INFO, "decomp fail\n");
+		die("decomp fail");
+	}
+
+	fsize = cbfs_load_and_decompress(&fh.data, 0,
+					 region_device_sz(&fh.data),
+					 buf, buf_size, compression_algo);
+
+// // 	size = cbfs_boot_load_file("u-boot", buf, buf_size, CBFS_TYPE_RAW);
+	printk(BIOS_INFO, "Loaded %zx %zx bytes to %p\n\n", fsize,
+	       decompressed_size, buf);
+	print_buffer((unsigned long)buf, buf, 4, 0x20, 0);
+	flush_l1d_to_l2();
+	func = (h_func)buf;
+	func();
+}
+
+#if 0
+/* hack version goes straight to an address */
+void jump_to_u_boot(const char *whence)
+{
+	uint8_t *buf = (uint8_t *)(0xe70000 + 0xff081000);
+	typedef void (*h_func)(void);
+	h_func func;
+
+	printk(BIOS_INFO, "\nLoading U-Boot from '%s'\n", whence);
+	printk(BIOS_INFO, "Jumping to %p\n\n", buf);
+
+	print_buffer((unsigned long)buf, buf, 4, 0x20, 0);
+
+	func = (h_func)buf;
+	func();
+}
+#endif
+
 void payload_load(void)
 {
 	struct prog *payload = &global_payload;
@@ -185,6 +251,9 @@ void payload_load(void)
 
 	if (prog_locate(payload))
 		goto out;
+
+// 	printk(BIOS_INFO, "loaded\n");
+// 	jump_to_u_boot("payload");
 
 	mirror_payload(payload);
 
