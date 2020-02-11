@@ -107,9 +107,6 @@ amdcompobj += xdr.o
 TOOLCFLAGS ?= -Werror -Wall -Wextra
 TOOLCFLAGS += -Wcast-qual -Wmissing-prototypes -Wredundant-decls -Wshadow
 TOOLCFLAGS += -Wstrict-prototypes -Wwrite-strings
-# Suppress the warning for build to pass.
-# TODO(crbug.com/1039526): Remove when the warning is fixed.
-TOOLCFLAGS += -Wno-misleading-indentation
 TOOLCFLAGS += -O2
 TOOLCPPFLAGS ?= -D_DEFAULT_SOURCE # memccpy() from string.h
 TOOLCPPFLAGS += -D_BSD_SOURCE -D_SVID_SOURCE # _DEFAULT_SOURCE for older glibc
