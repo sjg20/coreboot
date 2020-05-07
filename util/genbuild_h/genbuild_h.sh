@@ -20,7 +20,7 @@ TIMESOURCE=""
 
 export LANG=C
 export LC_ALL=C
-export TZ=UTC0
+#export TZ=UTC0
 
 XCOMPILE=$1
 
@@ -46,7 +46,7 @@ elif [ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" = "true" ]; then
 else
 	GITREV=Unknown
 	TIMESOURCE="date"
-	DATE=$(LANG= LC_ALL=C TZ=UTC0 date +%s)
+	DATE=$(LANG= LC_ALL=C date +%s)
 fi
 
 our_date() {
