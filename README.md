@@ -90,6 +90,119 @@ You can contact us directly on the coreboot mailing list:
   <https://www.coreboot.org/Mailinglist>
 
 
+Booting into U-Boot
+-------------------
+
+You can boot from coreboot into U-Boot from several places on Apollo Lake (APL):
+
+bootblock:
+
+ * Note coreboot bootblock loads at ffff8000
+ * (U-Boot) crosfw chromebook_coral
+ * (chroot) cd ~/trunk/src/third_party/coreboot; ./build-board.sh coral
+ * cp ~/cosarm/chroot/tmp/coreboot/coral/image-coral.serial.bin cb.rom && \
+   cbfstool cb.rom remove -n fallback/payload && \
+   cbfstool cb.rom add -t raw -f /tmp/b/chromebook_coral/spl/u-boot-spl.bin \
+   -n fallback/payload && em100 -s -c w25q128fw -d cb.rom -r
+ * Will be loaded at 0xfef10000
+ * Check CONFIG_SPL_TEXT_BASE in U-Boot is also 0xfef10000
+ * Set CONFIG_DEBUG_UART_BASE=0xddffc000
+ * Call jump_to_uboot() from src/soc/intel/apollolake/bootblock/bootblock.c
+
+romstage:
+
+ * Note coreboot romstage loads at fef20000, stack is around 0xfef06c1c but
+   gets updated by U-Boot SPL. Put both SPL and U-Boot into CBFS:
+ * (U-Boot) crosfw chromebook_coral
+ * (chroot) cd ~/trunk/src/third_party/coreboot; ./build-board.sh coral
+ * cp ~/cosarm/chroot/tmp/coreboot/coral/image-coral.serial.bin cb.rom && \
+   cbfstool cb.rom remove -n fallback/payload && \
+   cbfstool cb.rom add -t raw -f /tmp/b/chromebook_coral/spl/u-boot-spl.bin \
+     -n fallback/payload && \
+   cbfstool cb.rom add-master-header -r RW_LEGACY && \
+   cbfstool cb.rom add -t raw -f /tmp/b/chromebook_coral/u-boot.bin \
+     -r RW_LEGACY -n altfw/u-boot && \
+   cbfstool cb.rom extract -n vbt.bin -f vbt.bin && \
+   cbfstool cb.rom remove -n vbt.bin &&
+   cbfstool cb.rom add -n vbt.bin -f vbt.bin -t raw &&
+   em100 -s -c w25q128fw -d cb.rom -r
+
+ * Will be loaded at 0xfef10000
+ * Check CONFIG_SPL_TEXT_BASE in U-Boot is also 0xfef10000
+ * Set the stack at the start of start_from_tpl.S: mov	$0xfef10000, %esp
+ * Call jump_to_uboot() from src/drivers/intel/fsp2_0/memory_init.c
+
+Patch to reduce code size of SPL below 64KB limit. This could be increased by
+changing CONFIG_SPL_TEXT_BASE
+'''
+diff --git a/configs/chromebook_coral_defconfig b/configs/chromebook_coral_defconfig
+index aaa5e4a2925..ab664a55c63 100644
+--- a/configs/chromebook_coral_defconfig
++++ b/configs/chromebook_coral_defconfig
+@@ -10,6 +10,7 @@ CONFIG_DEBUG_UART_BASE=0xde000000
+ CONFIG_DEBUG_UART_CLOCK=1843200
+ CONFIG_VENDOR_GOOGLE=y
+ CONFIG_TARGET_CHROMEBOOK_CORAL=y
++CONFIG_FSP_FROM_CBFS=y
+ CONFIG_DEBUG_UART=y
+ CONFIG_FSP_VERSION2=y
+ CONFIG_GENERATE_PIRQ_TABLE=y
+@@ -21,17 +22,14 @@ CONFIG_X86_OFFSET_SPL=0xffe80000
+ CONFIG_INTEL_GENERIC_WIFI=y
+ CONFIG_SPL_TEXT_BASE=0xfef10000
+ CONFIG_BOOTSTAGE=y
+-CONFIG_SPL_BOOTSTAGE=y
+ CONFIG_TPL_BOOTSTAGE=y
+ CONFIG_BOOTSTAGE_REPORT=y
+-CONFIG_SPL_BOOTSTAGE_RECORD_COUNT=10
+ CONFIG_BOOTSTAGE_STASH=y
+ CONFIG_USE_BOOTARGS=y
+ CONFIG_BOOTARGS="nr_cpus=1 console=ttyS2,115200n8 cros_legacy loglevel=9 init=/sbin/init oops=panic panic=-1 root=PARTUUID=35c775e7-3735-d745-93e5-d9e0238f7ed0/PARTNROFF=1 rootwait rw noinitrd vt.global_cursor_default=0 add_efi_memmap boot=local noresume noswap i915.modeset=1 nmi_watchdog=panic,lapic disablevmx=off"
+ CONFIG_SYS_CONSOLE_INFO_QUIET=y
+ CONFIG_SPL_LOG=y
+ CONFIG_LOG_DEFAULT_LEVEL=4
+-CONFIG_LOG_ERROR_RETURN=y
+ CONFIG_DISPLAY_BOARDINFO_LATE=y
+ CONFIG_LAST_STAGE_INIT=y
+ CONFIG_BLOBLIST=y
+@@ -105,9 +103,8 @@ CONFIG_USB_XHCI_HCD=y
+ CONFIG_USB_STORAGE=y
+ CONFIG_USB_KEYBOARD=y
+ CONFIG_CONSOLE_SCROLL_LINES=5
++CONFIG_FS_CBFS=y
+ CONFIG_SPL_FS_CBFS=y
+-# CONFIG_SPL_USE_TINY_PRINTF is not set
+-CONFIG_TPL_USE_TINY_PRINTF=y
+ CONFIG_CMD_DHRYSTONE=y
+ CONFIG_TPM=y
+ # CONFIG_EFI_LOADER is not set
+'''
+ramstage: e.g.
+
+ * (chroot) ./build-board.sh coral
+ * Will be loaded at 0x1110000
+ * Check CONFIG_SYS_TEXT_BASE in U-Boot is also 0x1110000
+ * No need to touch CONFIG_DEBUG_UART_BASE as U-Boot reads coreboot sysinfo
+ * cp ~/cosarm/chroot/tmp/coreboot/coral/image-coral.serial.bin cb.rom && \
+   cbfstool cb.rom remove -r RW_LEGACY -n altfw/u-boot && \
+   cbfstool cb.rom add -r RW_LEGACY -f /tmp/b/chromebook_coral/u-boot.bin \
+   -n altfw/u-boot -t raw && em100 -s -c w25q128fw -d cb.rom -r
+
+'''coreboot patches
+1ce84de80fd (HEAD -> coral5) docs
+d655edb4f5c ram stage
+499eedd7326 rom stage: jump to U-Boot just before meminit
+1b8ea36fc75 bootblock
+639bc5fa88b misc debug output
+325405dbd19 apl: Show CAR info in platform_segment_loaded
+332fd840f6e print_buffer
+c41dff5defa quiet
+1760119e0b0 Drop -Werror
+963bcbef345 fix timezone
+bdaad36a1b1 build-board.sh
+efa3084d63e (us) UPSTREAM: nvidia/tegra210: Enable RETURN_FROM_VERSTAGE to free up space
+'''
+
 Copyright and License
 ---------------------
 

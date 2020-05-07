@@ -252,8 +252,8 @@ void payload_load(void)
 	if (prog_locate(payload))
 		goto out;
 
-// 	printk(BIOS_INFO, "loaded\n");
-// 	jump_to_u_boot("payload");
+	printk(BIOS_INFO, "loaded\n");
+	jump_to_u_boot("payload");
 
 	mirror_payload(payload);
 

@@ -111,7 +111,7 @@ const char *mainboard_vbt_filename(void)
 		break;
 	case SKU_2_SANTA:
 	case SKU_3_SANTA:
-		return "vbt-santa.bin";
+		return "vbt.bin";
 		break;
 	case SKU_13_EPAULETTE:
 	case SKU_14_EPAULETTE:

@@ -315,7 +315,7 @@ void jump_to_u_boot(const char *whence)
 	printk(BIOS_INFO, "Loaded %zx bytes\n\n", fsize);
 	func = (h_func)buf;
 	print_buffer((unsigned long)buf, buf, 4, 0x20, 0);
-// 	flush_l1d_to_l2();
+	flush_l1d_to_l2();
 	printk(BIOS_INFO, "Check CONFIG_DEBUG_UART_BASE=%#x\n",
 	       CONFIG_CONSOLE_UART_BASE_ADDRESS);
 	printk(BIOS_INFO, "Jumping to U-Boot\n");
@@ -395,6 +395,7 @@ static void do_fsp_memory_init(struct fsp_header *hdr, bool s3wake,
 	 * after cbmem has been initialised in do_fsp_post_memory_init().
 	 */
 	fsp_debug_after_memory_init(status);
+//	jump_to_u_boot("after raminit");
 }
 
 /* Load the binary into the memory specified by the info header. */
@@ -455,7 +456,7 @@ void fsp_memory_init(bool s3wake)
 	struct memranges memmap;
 	struct range_entry prog_ranges[2];
 
-	if (0)
+	if (1)
 		jump_to_u_boot("fsp_memory_init");
 	if (CONFIG(ELOG_BOOT_COUNT) && !s3wake)
 		boot_count_increment();
