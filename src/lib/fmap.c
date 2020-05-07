@@ -43,6 +43,7 @@ static int find_fmap_directory(struct region_device *fmrd)
 	size_t fmap_size;
 	size_t offset = FMAP_OFFSET;
 
+	printk(BIOS_INFO, "%s start\n", __func__);
 	if (cbmem_possibly_online() && !ENV_SMM) {
 		/* Try FMAP cache first */
 		const struct mem_region_device *cache;
@@ -53,7 +54,9 @@ static int find_fmap_directory(struct region_device *fmrd)
 	}
 
 	boot_device_init();
+	printk(BIOS_INFO, "%s init\n", __func__);
 	boot = boot_device_ro();
+	printk(BIOS_INFO, "%s boot=%p\n", __func__, boot);
 
 	if (boot == NULL)
 		return -1;

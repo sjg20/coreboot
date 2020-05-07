@@ -266,6 +266,7 @@ void *cbmem_find(u32 id)
 	struct imd imd_backing;
 	const struct imd_entry *e;
 
+	printk(BIOS_INFO, "%s start imd\n", __func__);
 	imd = imd_init_backing_with_recover(&imd_backing);
 
 	e = imd_entry_find(imd, id);

@@ -47,7 +47,7 @@ void vboot_run_logic(void)
 			PROG_INIT(PROG_VERSTAGE,
 				CONFIG_CBFS_PREFIX "/verstage");
 
-		printk(BIOS_DEBUG, "VBOOT: Loading verstage.\n");
+		printk(BIOS_DEBUG, "VBOOT1: Loading verstage.\n");
 
 		/* load verstage from RO */
 		if (cbfs_boot_locate(&file, prog_name(&verstage), NULL))
@@ -75,10 +75,12 @@ static int vboot_locate(struct cbfs_props *props)
 {
 	struct region selected_region;
 
+	printk(BIOS_INFO, "%s\n", __func__);
 	/* Don't honor vboot results until the vboot logic has run. */
 	if (!vboot_logic_executed())
 		return -1;
 
+	printk(BIOS_INFO, "%s calling sr\n", __func__);
 	if (vboot_get_selected_region(&selected_region))
 		return -1;
 

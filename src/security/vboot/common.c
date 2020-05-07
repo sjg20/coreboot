@@ -30,8 +30,11 @@ struct vboot_working_data *vboot_get_working_data(void)
 {
 	struct vboot_working_data *wd = NULL;
 
-	if (cbmem_possibly_online())
+	printk(BIOS_INFO, "%s start\n", __func__);
+	if (cbmem_possibly_online()) {
+		printk(BIOS_INFO, "%s online\n", __func__);
 		wd = cbmem_find(CBMEM_ID_VBOOT_WORKBUF);
+	}
 
 	if (wd == NULL && CONFIG(VBOOT_STARTS_IN_BOOTBLOCK) &&
 	    preram_symbols_available())

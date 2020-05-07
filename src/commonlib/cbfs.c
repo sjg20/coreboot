@@ -208,6 +208,7 @@ int cbfs_locate(struct cbfsf *fh, const struct region_device *cbfs,
 		if (type != NULL) {
 			uint32_t ftype;
 
+			DEBUG("file_type\n");
 			if (cbfsf_file_type(fh, &ftype))
 				break;
 

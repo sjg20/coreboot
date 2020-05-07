@@ -226,6 +226,7 @@ static int fast_spi_flash_read(const struct spi_flash *flash,
 		data += xfer_len;
 		len -= xfer_len;
 	}
+	printk(BIOS_INFO, "%s: addr=%x, len=%zx\n", __func__, addr, len);
 
 	return SUCCESS;
 }
@@ -311,6 +312,7 @@ static int fast_spi_flash_probe(const struct spi_slave *dev,
 	 * flash->erase_cmd = ???
 	 * flash->status_cmd = ???
 	 */
+	printk(BIOS_INFO, "\nflash probe\n");
 
 	flash->ops = &fast_spi_flash_ops;
 	return 0;

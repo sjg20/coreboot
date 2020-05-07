@@ -13,6 +13,7 @@
 
 #include <device/mmio.h>
 #include <boot/coreboot_tables.h>
+#include <console/console.h>
 #include <console/uart.h>
 #include <device/device.h>
 #include <delay.h>
@@ -159,6 +160,8 @@ void uart_fill_lb(void *data)
 	serial.input_hertz = uart_platform_refclk();
 	serial.uart_pci_addr = CONFIG_UART_PCI_ADDR;
 	lb_add_serial(&serial, data);
+	printk(BIOS_INFO, "\n\nUART base %x, %d, %d, %x\n\n\n", serial.baseaddr,
+	       serial.regwidth, serial.input_hertz, serial.uart_pci_addr);
 
 	lb_add_console(LB_TAG_CONSOLE_SERIAL8250MEM, data);
 }

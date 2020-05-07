@@ -66,12 +66,14 @@ static void bios_mmap_init(void)
 	size_t size, start, bios_mapped_size;
 	uintptr_t base;
 
+	printk(BIOS_INFO, "%s start\n", __func__);
 	size = bios_size;
 
 	/* If bios_size is initialized, then bail out. */
 	if (size != 0)
 		return;
 	start = fast_spi_get_bios_region(&size);
+	printk(BIOS_INFO, "%s start %zx\n", __func__, start);
 
 	/* BIOS region is mapped right below 4G. */
 	base = 4ULL * GiB - size;
@@ -85,6 +87,9 @@ static void bios_mmap_init(void)
 	mem_region_device_ro_init(&shadow_dev, (void *)base,
 			       bios_mapped_size);
 
+// 	printk(BIOS_INFO, "%s base %x, size %x, bios_mapped_size %zx\n", __func__,
+// 	       base, size, bios_mapped_size);
+
 	xlate_region_device_ro_init(&real_dev, &shadow_dev.rdev,
 				 start, bios_mapped_size,
 				 CONFIG_ROM_SIZE);
@@ -94,6 +99,7 @@ static void bios_mmap_init(void)
 
 const struct region_device *boot_device_ro(void)
 {
+	printk(BIOS_INFO, "%s start\n", __func__);
 	bios_mmap_init();
 
 	return &real_dev.rdev;
@@ -103,6 +109,8 @@ static int iafw_boot_region_properties(struct cbfs_props *props)
 {
 	struct region *real_dev_reg;
 	struct region regn;
+
+	printk(BIOS_INFO, "%s start\n", __func__);
 
 	/* use fmap to locate CBFS area */
 	if (fmap_locate_area("COREBOOT", &regn))
