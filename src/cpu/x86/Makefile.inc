@@ -35,5 +35,5 @@ $(SIPI_BIN): $(SIPI_RMOD)
 	$(OBJCOPY_$(TARGET_STAGE)) -O binary $< $@
 
 $(call src-to-obj,$(TARGET_STAGE),$(SIPI_BIN).manual): $(SIPI_BIN)
-	@printf "    OBJCOPY    $(subst $(obj)/,,$(@))\n"
+	#@printf "    OBJCOPY    $(subst $(obj)/,,$(@))\n"
 	cd $(dir $<); $(OBJCOPY_rmodules_$(ARCH-$(TARGET_STAGE)-y)) -I binary $(notdir $<) $(target-objcopy) $(abspath $@)

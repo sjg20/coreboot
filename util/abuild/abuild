@@ -288,7 +288,7 @@ function update_config
 	# shellcheck disable=SC2059
 	printf "$configoptions" >> "${config_file}"
 
-	yes "" 2>/dev/null | $MAKE oldconfig "$verboseopt" "DOTCONFIG=${config_file}" "obj=${build_dir}" "objutil=$TARGET/sharedutils" &> "${build_dir}/config.log" ; \
+	yes "" 2>/dev/null | $MAKE -s oldconfig "$verboseopt" "DOTCONFIG=${config_file}" "obj=${build_dir}" "objutil=$TARGET/sharedutils" &> "${build_dir}/config.log" ; \
 		CONFIG_OK=$?
 	if [ $CONFIG_OK -eq 0 ]; then
 		$MAKE savedefconfig "$verboseopt" DEFCONFIG="${defconfig_file}" DOTCONFIG="${config_file}" obj="${build_dir}" objutil="$TARGET/sharedutils" &>> "${build_dir}/config.log"
@@ -839,7 +839,7 @@ build_targets()
 	local XMLFILE="$ABSPATH/__util.xml"
 	rm -f "${XMLFILE}"
 	stime=$(perl -e 'print time();' 2>/dev/null || date +%s)
-	$BUILDPREFIX "$MAKE" -j "$cpus" DOTCONFIG="$TMPCFG" obj="$TARGET/temp" objutil="$TARGET/sharedutils" tools > "$TARGET/sharedutils/make.log" 2>&1
+	$BUILDPREFIX "$MAKE" -j "$cpus" -s DOTCONFIG="$TMPCFG" obj="$TARGET/temp" objutil="$TARGET/sharedutils" tools > "$TARGET/sharedutils/make.log" 2>&1
 	local ret=$?
 	etime=$(perl -e 'print time();' 2>/dev/null || date +%s)
 	local duration=$(( etime - stime ))

@@ -75,7 +75,7 @@ CONFIG_SHELL := sh
 KBUILD_DEFCONFIG := configs/defconfig
 UNAME_RELEASE := $(shell uname -r)
 HAVE_DOTCONFIG := $(wildcard $(DOTCONFIG))
-MAKEFLAGS += -rR --no-print-directory
+MAKEFLAGS += -s -rR --no-print-directory
 
 # Make is silent per default, but 'make V=1' will show all compiler calls.
 Q:=@
@@ -189,7 +189,8 @@ real-all: real-target
 .DELETE_ON_ERROR:
 
 $(KCONFIG_AUTOHEADER): $(KCONFIG_CONFIG) $(objutil)/kconfig/conf
-	+$(MAKE) oldconfig
+	echo "here 1"
+	+$(MAKE) -s oldconfig
 
 $(KCONFIG_AUTOCONFIG): $(KCONFIG_AUTOHEADER)
 	true
@@ -344,7 +345,7 @@ $$(call src-to-obj,$1,$$(1).$2): $$(1).$2 $$(call create_ada_deps,$1,$$(call src
 		$(3) -c -o $$$$@ $$$$<
 el$(EMPTY)se
 $$(call src-to-obj,$1,$$(1).$2): $$(1).$2 $(KCONFIG_AUTOHEADER) $(4)
-	@printf "    CC         $$$$(subst $$$$(obj)/,,$$$$(@))\n"
+	#@printf "    CC         $$$$(subst $$$$(obj)/,,$$$$(@))\n"
 	$(CC_$(1)) \
 		-MMD $$$$(CPPFLAGS_$(1)) $$$$(CFLAGS_$(1)) -MT $$$$(@) \
 		$(3) -c -o $$$$@ $$$$<

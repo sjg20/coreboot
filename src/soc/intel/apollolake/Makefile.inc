@@ -133,10 +133,11 @@ endif
 #    1. Write ifwi.bin.tmp to coreboot.rom using CONFIG_IFWI_FMAP_NAME.
 ifeq ($(CONFIG_NEED_IFWI),y)
 files_added:: $(IFWITOOL)
-	$(IFWITOOL) $(CONFIG_IFWI_FILE_NAME) create -f $(objcbfs)/ifwi.bin.tmp
-	$(IFWITOOL) $(objcbfs)/ifwi.bin.tmp delete -n OBBP
-	$(IFWITOOL) $(objcbfs)/ifwi.bin.tmp replace -n IBBP -f $(objcbfs)/bootblock.bin -d -e IBBL
-	$(CBFSTOOL) $(obj)/coreboot.rom write -r $(CONFIG_IFWI_FMAP_NAME) -f $(objcbfs)/ifwi.bin.tmp --fill-upward
+	$(IFWITOOL) $(CONFIG_IFWI_FILE_NAME) create -f $(objcbfs)/ifwi.bin.tmp >/dev/null
+	$(IFWITOOL) $(objcbfs)/ifwi.bin.tmp delete -n OBBP >/dev/null
+	$(IFWITOOL) $(objcbfs)/ifwi.bin.tmp replace -n IBBP -f $(objcbfs)/bootblock.bin -d -e IBBL >/dev/null
+	$(CBFSTOOL) $(obj)/coreboot.rom write -r $(CONFIG_IFWI_FMAP_NAME) -f $(objcbfs)/ifwi.bin.tmp --fill-upward >/dev/null 2>&1
+
 endif
 
 # DSP firmware settings files.

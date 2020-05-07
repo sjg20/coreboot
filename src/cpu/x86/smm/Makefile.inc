@@ -31,7 +31,7 @@ $(obj)/smm/smm.o: $$(smm-objs) $(COMPILER_RT_smm)
 # change to the target path because objcopy will use the path name in its
 # ELF symbol names.
 $(call src-to-obj,ramstage,$(obj)/cpu/x86/smm/smm.manual): $(obj)/smm/smm
-	@printf "    OBJCOPY    $(subst $(obj)/,,$(@))\n"
+	#@printf "    OBJCOPY    $(subst $(obj)/,,$(@))\n"
 	cd $(dir $<); $(OBJCOPY_smm) -I binary $(notdir $<) $(target-objcopy) $(abspath $@)
 
 ifeq ($(CONFIG_HAVE_SMI_HANDLER),y)
@@ -66,7 +66,7 @@ $(obj)/smmstub/smmstub: $(obj)/smmstub/smmstub.elf.rmod
 	$(OBJCOPY_smmstub) -O binary $< $@
 
 $(call src-to-obj,ramstage,$(obj)/cpu/x86/smm/smmstub.manual): $(obj)/smmstub/smmstub
-	@printf "    OBJCOPY    $(subst $(obj)/,,$(@))\n"
+	#@printf "    OBJCOPY    $(subst $(obj)/,,$(@))\n"
 	cd $(dir $<); $(OBJCOPY_smmstub) -I binary $(notdir $<) $(target-objcopy) $(abspath $@)
 
 # C-based SMM handler.

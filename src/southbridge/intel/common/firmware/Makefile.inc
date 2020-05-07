@@ -42,7 +42,7 @@ ifeq ($(CONFIG_HAVE_EC_BIN),y)
 add_intel_firmware: $(call strip_quotes,$(CONFIG_EC_BIN_PATH))
 endif
 add_intel_firmware: $(obj)/coreboot.pre $(IFDTOOL)
-	printf "    DD         Adding Intel Firmware Descriptor\n"
+	#printf "    DD         Adding Intel Firmware Descriptor\n"
 	dd if=$(IFD_BIN_PATH) \
 		of=$(obj)/coreboot.pre conv=notrunc >/dev/null 2>&1
 ifeq ($(CONFIG_VALIDATE_INTEL_DESCRIPTOR),y)
@@ -91,9 +91,9 @@ ifeq ($(CONFIG_LOCK_MANAGEMENT_ENGINE),y)
 	mv $(obj)/coreboot.pre.new $(obj)/coreboot.pre
 endif
 ifeq ($(CONFIG_UNLOCK_FLASH_REGIONS),y)
-	printf "    IFDTOOL    Unlocking Management Engine\n"
+	#printf "    IFDTOOL    Unlocking Management Engine\n"
 	$(objutil)/ifdtool/ifdtool \
-	$(IFDTOOL_USE_CHIPSET) -u $(obj)/coreboot.pre
+	$(IFDTOOL_USE_CHIPSET) -u $(obj)/coreboot.pre >/dev/null 2>&1
 	mv $(obj)/coreboot.pre.new $(obj)/coreboot.pre
 endif
 

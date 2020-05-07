@@ -37,8 +37,8 @@ nconfig: $(objk)/nconf
 # Disable strict mode because oldconfig is typically used to clean up
 # templates and the like. The second invocation should already have sane data.
 oldconfig: $(objk)/conf
-	KCONFIG_STRICT= $< --$@ $(Kconfig)
-	$< --silentoldconfig $(Kconfig)
+	KCONFIG_STRICT= $< --$@ $(Kconfig) >/dev/null
+	$< --silentoldconfig $(Kconfig) >/dev/null
 
 silentoldconfig: $(objk)/conf
 	$< --$@ $(Kconfig)

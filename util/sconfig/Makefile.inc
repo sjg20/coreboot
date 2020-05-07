@@ -13,11 +13,11 @@ $(objutil)/sconfig/.generated: $(objutil)/sconfig
 	touch $@
 
 $(objutil)/sconfig/%.o: util/sconfig/%.c | $(objutil)/sconfig/.generated
-	printf "    HOSTCC     $(subst $(obj)/,,$(@))\n"
+	#printf "    HOSTCC     $(subst $(obj)/,,$(@))\n"
 	$(HOSTCC) $(SCONFIGFLAGS) $(HOSTCFLAGS) -c -o $@ $<
 
 $(objutil)/sconfig/%.o: $(objutil)/sconfig/%.c
-	printf "    HOSTCC     $(subst $(obj)/,,$(@))\n"
+	#printf "    HOSTCC     $(subst $(obj)/,,$(@))\n"
 	$(HOSTCC) $(SCONFIGFLAGS) $(HOSTCFLAGS) -c -o $@ $<
 
 ifeq ($(CONFIG_UTIL_GENPARSER),y)
@@ -40,7 +40,7 @@ $(objutil)/sconfig/%: $(top)/util/sconfig/%_shipped
 	cp $< $@
 
 $(objutil)/sconfig/sconfig: $(addprefix $(objutil)/sconfig/,$(sconfigobj))
-	printf "    HOSTCC     $(subst $(obj)/,,$(@)) (link)\n"
+	#printf "    HOSTCC     $(subst $(obj)/,,$(@)) (link)\n"
 	$(HOSTCC) $(SCONFIGFLAGS) -o $@ $(addprefix $(objutil)/sconfig/,$(sconfigobj))
 
 $(addprefix $(objutil)/sconfig/,$(sconfigobj)) : $(objutil)/sconfig/sconfig.tab.h $(objutil)/sconfig/sconfig.tab.c $(objutil)/sconfig/lex.yy.c

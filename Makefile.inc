@@ -74,8 +74,8 @@ coreboot: build-dirs $(obj)/coreboot.rom $(obj)/cbfstool $(obj)/rmodtool $(obj)/
 # targets after the build completes by creating a Makefile.inc in the
 # site-local directory with a target named 'build_complete::'
 build_complete:: coreboot
-	printf "\nBuilt %s (%s)\n" $(MAINBOARDDIR) \
-		$(CONFIG_MAINBOARD_PART_NUMBER)
+	#printf "\nBuilt %s (%s)\n" $(MAINBOARDDIR) \
+	#	$(CONFIG_MAINBOARD_PART_NUMBER)
 
 # This target can be used to run rules after all files were added to CBFS,
 # for example to process FMAP regions or the entire image.
@@ -195,17 +195,17 @@ endif
 
 ifneq ($(UPDATED_SUBMODULES),1)
 # try to fetch non-optional submodules if the source is under git
-forgetthis:=$(if $(GIT),$(shell git submodule update --init))
+# forgetthis:=$(if $(GIT),$(shell git submodule update --init))
 ifeq ($(CONFIG_USE_BLOBS),y)
 # These items are necessary because each has update=none in .gitmodules.  They are ignored
 # until expressly requested and enabled with --checkout
-forgetthis:=$(if $(GIT),$(shell git submodule update --init --checkout 3rdparty/blobs))
-forgetthis:=$(if $(GIT),$(shell git submodule update --init --checkout 3rdparty/intel-microcode))
+# forgetthis:=$(if $(GIT),$(shell git submodule update --init --checkout 3rdparty/blobs))
+# forgetthis:=$(if $(GIT),$(shell git submodule update --init --checkout 3rdparty/intel-microcode))
 ifeq ($(CONFIG_PLATFORM_USES_FSP1_0)$(CONFIG_PLATFORM_USES_FSP1_1)$(CONFIG_PLATFORM_USES_FSP2_0),y)
-forgetthis:=$(if $(GIT),$(shell git submodule update --init --checkout 3rdparty/fsp))
+# forgetthis:=$(if $(GIT),$(shell git submodule update --init --checkout 3rdparty/fsp))
 endif
 ifeq ($(CONFIG_USE_AMD_BLOBS),y)
-forgetthis:=$(if $(GIT),$(shell git submodule update --init --checkout 3rdparty/amd_blobs))
+# forgetthis:=$(if $(GIT),$(shell git submodule update --init --checkout 3rdparty/amd_blobs))
 endif
 endif
 UPDATED_SUBMODULES:=1
@@ -227,7 +227,7 @@ $(foreach type,ads adb, \
 define generic-objs_ld_template_gen
 de$(EMPTY)fine $(1)-objs_ld_template
 $$(call src-to-obj,$1,$$(1).ld): $$(1).ld $(obj)/config.h
-	@printf "    CP         $$$$(subst $$$$(obj)/,,$$$$(@))\n"
+	#@printf "    CP         $$$$(subst $$$$(obj)/,,$$$$(@))\n"
 	$$(CC_$(1)) -MMD $$(CPPFLAGS_$(1)) $$($(1)-ld-ccopts) $(PREPROCESS_ONLY) -include $(obj)/config.h -MT $$$$@ -o $$$$@ $$$$<
 en$(EMPTY)def
 endef
@@ -285,8 +285,8 @@ endef
 # arg1: source file
 # arg2: binary file name
 cbfs-files-processor-nvramtool= \
-	$(eval $(2): $(1) $(src)/mainboard/$(MAINBOARDDIR)/cmos.layout | $(objutil)/nvramtool/nvramtool ; \
-		printf "    CREATE     $(2) (from $(1))\n"; \
+	$(eval $
+(2): $(1) $(src)/mainboard/$(MAINBOARDDIR)/cmos.layout | $(objutil)/nvramtool/nvramtool ; \
 		$(objutil)/nvramtool/nvramtool -y $(src)/mainboard/$(MAINBOARDDIR)/cmos.layout -D $(2).tmp -p $(1) && \
 		mv $(2).tmp $(2))
 
@@ -296,7 +296,6 @@ cbfs-files-processor-nvramtool= \
 # arg2: binary file name
 cbfs-files-processor-vsa= \
 	$(eval $(2): $(1) ; \
-		printf "    CREATE     $(2) (from $(1))\n"; \
 		$(OBJCOPY_ramstage) --set-start 0x20 --adjust-vma 0x60000 -I binary -O elf32-i386 -B i386 $(1) $(2).tmp && \
 		$(LD_ramstage) -m elf_i386 -e 0x60020 --section-start .data=0x60000 $(2).tmp -o $(2))
 
@@ -306,10 +305,9 @@ cbfs-files-processor-vsa= \
 # arg2: output
 cbfs-files-processor-defconfig= \
 	$(eval $(2): $(1) $(obj)/build.h $(objutil)/kconfig/conf; \
-		+printf "    CREATE     $(2) (from $(1))\n"; \
 		printf "\# This image was built using coreboot " > $(2).tmp && \
 		grep "\<COREBOOT_VERSION\>" $(obj)/build.h |cut -d\" -f2 >> $(2).tmp && \
-		$(MAKE) DOTCONFIG=$(1) DEFCONFIG=$(2).tmp2 savedefconfig && \
+		$(MAKE) -s DOTCONFIG=$(1) DEFCONFIG=$(2).tmp2 savedefconfig && \
 		cat $(2).tmp2 >> $(2).tmp && \
 		rm -f $(2).tmp2 && \
 		\mv -f $(2).tmp $(2))
@@ -506,7 +504,7 @@ build_h_check := \
 	cmp -s $(build_h)t $(build_h) >/dev/null 2>&1 || echo $(build_h)t
 
 $(build_h): $$(shell $$(build_h_check))
-	@printf "    GEN        build.h\n"
+	#@printf "    GEN        build.h\n"
 	mv $< $@
 
 build-dirs $(objcbfs) $(objgenerated):
@@ -553,7 +551,7 @@ endif
 ROMCC_BIN= $(objutil)/romcc/romcc
 ROMCC?=$(ROMCC_BIN)
 $(ROMCC_BIN): $(top)/util/romcc/romcc.c
-	@printf "    HOSTCC     $(subst $(obj)/,,$(@)) (this may take a while)\n"
+	#@printf "    HOSTCC     $(subst $(obj)/,,$(@)) (this may take a while)\n"
 	@# Note: Adding -O2 here might cause problems. For details see:
 	@# https://www.coreboot.org/pipermail/coreboot/2010-February/055825.html
 	$(HOSTCC) -g $(STACK) -Wall -o $@ $<
@@ -568,7 +566,7 @@ $(IFDTOOL):
 
 AMDFWTOOL:=$(objutil)/amdfwtool/amdfwtool
 $(AMDFWTOOL): $(top)/util/amdfwtool/amdfwtool.c
-	@printf "    HOSTCC     $(subst $(obj)/,,$(@))\n"
+	#@printf "    HOSTCC     $(subst $(obj)/,,$(@))\n"
 	$(HOSTCC) $(HOSTCFLAGS) -DCONFIG_ROM_SIZE=$(CONFIG_ROM_SIZE) -o $@ $<
 
 CBOOTIMAGE:=$(objutil)/cbootimage/cbootimage
@@ -579,7 +577,7 @@ subdirs-y += util/nvidia
 
 BIMGTOOL:=$(objutil)/bimgtool/bimgtool
 $(BIMGTOOL): $(top)/util/bimgtool/bimgtool.c
-	@printf "    HOSTCC     $(subst $(obj)/,,$(@))\n"
+	#@printf "    HOSTCC     $(subst $(obj)/,,$(@))\n"
 	$(HOSTCC) $(HOSTCFLAGS) -o $@ $<
 
 $(obj)/config.h: $(objutil)/kconfig/conf
@@ -708,19 +706,19 @@ $(objcbfs)/bootblock.lz4: $(objcbfs)/bootblock.elf $(objutil)/cbfstool/cbfs-comp
 # Put assembled decompressor+bootblock into bootblock.raw.elf so that SoC
 # Makefiles wrapping the bootblock in a header can always key off the same file.
 $(objcbfs)/bootblock.raw.elf: $(objcbfs)/decompressor.elf
-	@printf "    OBJCOPY    $(notdir $(@))\n"
+	#@printf "    OBJCOPY    $(notdir $(@))\n"
 	$(OBJCOPY_bootblock) $(preserve-bss-flags) $< $@
 
 else	# CONFIG_COMPRESS_BOOTBLOCK
 
 $(objcbfs)/bootblock.raw.elf: $(objcbfs)/bootblock.elf
-	@printf "    OBJCOPY    $(notdir $(@))\n"
+	#@printf "    OBJCOPY    $(notdir $(@))\n"
 	$(OBJCOPY_bootblock) $(preserve-bss-flags) $< $@
 
 endif	# CONFIG_COMPRESS_BOOTBLOCK
 
 $(objcbfs)/bootblock.raw.bin: $(objcbfs)/bootblock.raw.elf
-	@printf "    OBJCOPY    $(notdir $(@))\n"
+	#@printf "    OBJCOPY    $(notdir $(@))\n"
 	$(OBJCOPY_bootblock) -O binary $< $@
 
 ifneq ($(CONFIG_HAVE_BOOTBLOCK),y)
@@ -733,7 +731,7 @@ $(objcbfs)/%.bin: $(objcbfs)/%.raw.bin
 
 $(objcbfs)/%.elf: $(objcbfs)/%.debug
 	$(eval class := $(call find-class,$(@F)))
-	@printf "    OBJCOPY    $(subst $(obj)/,,$(@))\n"
+	#@printf "    OBJCOPY    $(subst $(obj)/,,$(@))\n"
 	cp $< $@.tmp
 	$(NM_$(class)) -n $@.tmp | sort > $(basename $@).map
 	$(OBJCOPY_$(class)) --strip-debug $@.tmp
@@ -815,7 +813,7 @@ endef
 #          region name,
 #          non-empty if file removal requested)
 define cbfs-add-cmd
-	printf "    CBFS       $(call extract_nth,2,$(1))\n"
+	#printf "    CBFS       $(call extract_nth,2,$(1))\n"
 	$(if $(3),-$(CBFSTOOL) $@.tmp remove -n $(call extract_nth,2,$(file)) 2>/dev/null)
 	$(call cbfs-add-cmd-for-region,$(1),$(2))
 endef
@@ -1042,7 +1040,7 @@ TS_OPTIONS := -j $(CONFIG_INTEL_TOP_SWAP_BOOTBLOCK_SIZE)
 endif
 ifneq ($(CONFIG_UPDATE_IMAGE),y)
 $(obj)/coreboot.pre: $(objcbfs)/bootblock.bin $$(prebuilt-files) $(CBFSTOOL) $(IFITTOOL) $$(cpu_ucode_cbfs_file) $(obj)/fmap.fmap $(obj)/fmap.desc
-	$(CBFSTOOL) $@.tmp create -M $(obj)/fmap.fmap -r $(shell cat $(obj)/fmap.desc)
+	$(CBFSTOOL) $@.tmp create -M $(obj)/fmap.fmap -r $(shell cat $(obj)/fmap.desc) 2>/dev/null
 ifeq ($(CONFIG_ARCH_X86),y)
 	$(CBFSTOOL) $@.tmp add \
 		-f $(objcbfs)/bootblock.bin \
@@ -1095,7 +1093,7 @@ endif
 
 $(obj)/coreboot.rom: $(obj)/coreboot.pre $(RAMSTAGE) $(CBFSTOOL) $$(INTERMEDIATE)
 
-	@printf "    CBFS       $(subst $(obj)/,,$(@))\n"
+	#@printf "    CBFS       $(subst $(obj)/,,$(@))\n"
 # The full ROM may be larger than the CBFS part, so create an empty
 # file (filled with \377 = 0xff) and copy the CBFS image over it.
 	dd if=/dev/zero bs=$(call _toint,$(CONFIG_ROM_SIZE)) count=1 2> /dev/null | tr '\000' '\377' > $@.tmp
@@ -1114,16 +1112,16 @@ ifeq ($(CONFIG_SEABIOS_ADD_SERCON_PORT_FILE),y)
 endif
 ifeq ($(CONFIG_CPU_INTEL_FIRMWARE_INTERFACE_TABLE),y)
 ifeq ($(CONFIG_CPU_MICROCODE_CBFS_EXTERNAL_HEADER),y)
-	@printf "    UPDATE-FIT\n"
+	#@printf "    UPDATE-FIT\n"
 	$(IFITTOOL) -f $@.tmp -a -n cpu_microcode_blob.bin -t 1 -s $(CONFIG_CPU_INTEL_NUM_FIT_ENTRIES) \
-	-r COREBOOT
+	-r COREBOOT >/dev/null
 endif
 ifeq ($(CONFIG_USE_CPU_MICROCODE_CBFS_BINS),y)
-	@printf "    UPDATE-FIT\n"
+	# @printf "    UPDATE-FIT\n"
 	$(IFITTOOL) -f $@.tmp -a -n cpu_microcode_blob.bin -t 1 -s $(CONFIG_CPU_INTEL_NUM_FIT_ENTRIES) \
-	-r COREBOOT
+	-r COREBOOT >/dev/null
 endif
-	$(IFITTOOL) -f $@.tmp -D -r COREBOOT
+	$(IFITTOOL) -f $@.tmp -D -r COREBOOT >/dev/null
 
 # Second FIT in TOP_SWAP bootblock
 ifeq ($(CONFIG_INTEL_ADD_TOP_SWAP_BOOTBLOCK),y)
@@ -1149,10 +1147,10 @@ endif
 
 endif
 	mv $@.tmp $@
-	@printf "    CBFSLAYOUT  $(subst $(obj)/,,$(@))\n\n"
-	$(CBFSTOOL) $@ layout
-	@printf "    CBFSPRINT  $(subst $(obj)/,,$(@))\n\n"
-	$(CBFSTOOL) $@ print -r $(subst $(spc),$(comma),$(all-regions))
+	#@printf "    CBFSLAYOUT  $(subst $(obj)/,,$(@))\n\n"
+	#$(CBFSTOOL) $@ layout
+	#@printf "    CBFSPRINT  $(subst $(obj)/,,$(@))\n\n"
+	#$(CBFSTOOL) $@ print -r $(subst $(spc),$(comma),$(all-regions))
 
 cbfs-files-y += $(CONFIG_CBFS_PREFIX)/romstage
 $(CONFIG_CBFS_PREFIX)/romstage-file := $(objcbfs)/romstage.elf

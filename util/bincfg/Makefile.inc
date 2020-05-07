@@ -9,11 +9,11 @@ $(objutil)/bincfg/.generated: $(objutil)/bincfg
 	touch $@
 
 $(objutil)/bincfg/%.o: util/bincfg/%.c | $(objutil)/bincfg/.generated
-	printf "    HOSTCC     $(subst $(obj)/,,$(@))\n"
+	#printf "    HOSTCC     $(subst $(obj)/,,$(@))\n"
 	$(HOSTCC) $(BINCFG_FLAGS) $(HOSTCFLAGS) -c -o $@ $<
 
 $(objutil)/bincfg/%.o: $(objutil)/bincfg/%.c
-	printf "    HOSTCC     $(subst $(obj)/,,$(@))\n"
+	#printf "    HOSTCC     $(subst $(obj)/,,$(@))\n"
 	$(HOSTCC) $(BINCFG_FLAGS) $(HOSTCFLAGS) -c -o $@ $<
 
 ifeq ($(CONFIG_UTIL_GENPARSER),y)
@@ -35,7 +35,7 @@ $(objutil)/bincfg/%: $(top)/util/bincfg/%_shipped
 	cp $< $@
 
 $(objutil)/bincfg/bincfg: $(addprefix $(objutil)/bincfg/,$(bincfg_obj))
-	printf "    HOSTCC     $(subst $(obj)/,,$(@)) (link)\n"
+	#printf "    HOSTCC     $(subst $(obj)/,,$(@)) (link)\n"
 	$(HOSTCC) $(BINCFG_FLAGS) -o $@ $(addprefix $(objutil)/bincfg/,$(bincfg_obj))
 
 $(addprefix $(objutil)/bincfg/,$(bincfg_obj)) : $(objutil)/bincfg/bincfg.tab.h $(objutil)/bincfg/bincfg.tab.c $(objutil)/bincfg/bincfg.lex.c

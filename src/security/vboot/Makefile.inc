@@ -120,7 +120,7 @@ $$(VB2_LIB_$(1)): $(obj)/config.h
 	+FIRMWARE_ARCH=$$(ARCHDIR-$$(ARCH-$(1)-y)) \
 	CC="$$(CC_$(1))" \
 	CFLAGS="$$(VBOOT_CFLAGS_$(1))" VBOOT2="y" \
-	$(MAKE) -C $(VBOOT_SOURCE) \
+	$(MAKE) QUIET=1 -s -C $(VBOOT_SOURCE) \
 		BUILD=$$(abspath $$(dir $$(VB2_LIB_$(1)))) \
 		V=$(V) \
 		fwlib20
@@ -238,13 +238,13 @@ $(obj)/gbb.sizetmp: $(obj)/coreboot.rom
 	$(CBFSTOOL) $< read -r GBB -f $@
 
 $(obj)/gbb.stub: $(obj)/coreboot.rom $(FUTILITY) $(obj)/gbb.sizetmp
-	@printf "    CREATE GBB (with BMPFV)\n"
-	$(FUTILITY) gbb_utility -c 0x100,0x1000,$(call int-subtract,$(call file-size,$(obj)/gbb.sizetmp) 0x2180),0x1000 $@.tmp
+	#@printf "    CREATE GBB (with BMPFV)\n"
+	$(FUTILITY) gbb_utility -c 0x100,0x1000,$(call int-subtract,$(call file-size,$(obj)/gbb.sizetmp) 0x2180),0x1000 $@.tmp >/dev/null
 	mv $@.tmp $@
 else
 $(obj)/gbb.stub: $(obj)/coreboot.rom $(FUTILITY)
-	@printf "    CREATE GBB (without BMPFV)\n"
-	$(FUTILITY) gbb_utility -c 0x100,0x1000,0,0x1000 $@.tmp
+	#@printf "    CREATE GBB (without BMPFV)\n"
+	$(FUTILITY) gbb_utility -c 0x100,0x1000,0,0x1000 $@.tmp >/dev/null
 	mv $@.tmp $@
 endif
 
@@ -254,14 +254,14 @@ CONFIG_GBB_HWID := $$($(top)/util/chromeos/gen_test_hwid.sh "$(CONFIG_MAINBOARD_
 endif
 
 $(obj)/gbb.region: $(obj)/gbb.stub
-	@printf "    SETUP GBB\n"
+	#@printf "    SETUP GBB\n"
 	cp $< $@.tmp
 	$(FUTILITY) gbb_utility -s \
 		--hwid="$(CONFIG_GBB_HWID)" \
 		--rootkey="$(CONFIG_VBOOT_ROOT_KEY)" \
 		--recoverykey="$(CONFIG_VBOOT_RECOVERY_KEY)" \
 		--flags=$(GBB_FLAGS) \
-		$@.tmp
+		$@.tmp  >/dev/null
 ifneq ($(CONFIG_GBB_BMPFV_FILE),)
 	$(FUTILITY) gbb_utility -s \
 		--bmpfv="$(CONFIG_GBB_BMPFV_FILE)" \
@@ -278,7 +278,7 @@ $(obj)/fwid.region: $(obj)/fwid.version
 		"$$(cat "$(obj)/fwid.version")" > $@
 
 build_complete:: $(obj)/gbb.region $(obj)/fwid.region
-	@printf "    WRITE GBB\n"
+	#@printf "    WRITE GBB\n"
 	$(CBFSTOOL) $(obj)/coreboot.rom write -u -r GBB -i 0 -f $(obj)/gbb.region
 	$(CBFSTOOL) $(obj)/coreboot.rom write -u -r RO_FRID -i 0 -f $(obj)/fwid.region
 ifeq ($(CONFIG_VBOOT_SLOTS_RW_A),y)
@@ -320,9 +320,9 @@ $(obj)/VBLOCK_%.bin: $(obj)/FW_MAIN_%.bin $(FUTILITY)
 
 ifeq ($(CONFIG_VBOOT_SLOTS_RW_AB),y)
 files_added:: $(obj)/VBLOCK_A.bin $(obj)/VBLOCK_B.bin
-	$(CBFSTOOL) $(obj)/coreboot.rom write -u -r VBLOCK_A -f $(obj)/VBLOCK_A.bin
-	$(CBFSTOOL) $(obj)/coreboot.rom write -u -r VBLOCK_B -f $(obj)/VBLOCK_B.bin
-	@printf "    FLASHMAP Layout generated for RO, A and B partition.\n"
+	$(CBFSTOOL) $(obj)/coreboot.rom write -u -r VBLOCK_A -f $(obj)/VBLOCK_A.bin 2>/dev/null
+	$(CBFSTOOL) $(obj)/coreboot.rom write -u -r VBLOCK_B -f $(obj)/VBLOCK_B.bin 2>/dev/null
+	#@printf "    FLASHMAP Layout generated for RO, A and B partition.\n"
 else ifeq ($(CONFIG_VBOOT_SLOTS_RW_A),y)
 files_added:: $(obj)/VBLOCK_A.bin
 	$(CBFSTOOL) $(obj)/coreboot.rom write -u -r VBLOCK_A -f $(obj)/VBLOCK_A.bin

@@ -308,7 +308,7 @@ echo "Extracting config.txt from $COREBOOT_IMAGE"
 $cbfstool_cmd "$COREBOOT_IMAGE" extract -n config -f "${tmpdir}/config.txt" >/dev/null 2>&1
 mv "${tmpdir}/config.txt" "${tmpdir}/config.short.txt"
 cp "${tmpdir}/config.short.txt" "${tmpcfg}"
-yes "" | make "DOTCONFIG=${tmpcfg}" oldconfig 2>/dev/null >/dev/null
+yes "" | make -s "DOTCONFIG=${tmpcfg}" oldconfig 2>/dev/null >/dev/null
 mv "${tmpcfg}" "${tmpdir}/config.txt"
 rm -f "${tmpcfg}.old"
 $cbfstool_cmd "$COREBOOT_IMAGE" print > "${tmpdir}/cbfs.txt"
