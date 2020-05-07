@@ -16,6 +16,7 @@
  */
 
 #include <assert.h>
+#include <console/console.h>
 #include <cpu/x86/msr.h>
 #include <intelblocks/msr.h>
 #include <program_loading.h>
@@ -40,6 +41,8 @@ void platform_segment_loaded(uintptr_t start, size_t size, int flags)
 
 	char start_car_check = is_car_addr(start);
 	char end_car_check = is_car_addr(start + size - 1);
+	printk(BIOS_INFO, "%s: start = %lx, size = %zx, %d, %d\n", __func__,
+	       start, size, start_car_check, end_car_check);
 
 	/* Bail out if loaded program segment does not lie in CAR region. */
 	if (!start_car_check && !end_car_check)
