@@ -108,4 +108,7 @@ static inline void romcc_printk(void) { }
 
 #endif /* !__ROMCC__ */
 
+int print_buffer(unsigned long addr, const void *data, unsigned int width,
+		 unsigned int count, unsigned int linelen);
+
 #endif /* CONSOLE_CONSOLE_H_ */
