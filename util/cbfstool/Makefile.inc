@@ -104,7 +104,7 @@ amdcompobj += elfheaders.o
 amdcompobj += common.o
 amdcompobj += xdr.o
 
-TOOLCFLAGS ?= -Werror -Wall -Wextra
+TOOLCFLAGS ?= -Wall -Wextra
 TOOLCFLAGS += -Wcast-qual -Wmissing-prototypes -Wredundant-decls -Wshadow
 TOOLCFLAGS += -Wstrict-prototypes -Wwrite-strings
 TOOLCFLAGS += -O2

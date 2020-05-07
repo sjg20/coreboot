@@ -468,7 +468,7 @@ ADAFLAGS_common += -gnatyN
 LDFLAGS_common := --gc-sections -nostdlib -nostartfiles -static --emit-relocs
 
 ifeq ($(CONFIG_WARNINGS_ARE_ERRORS),y)
-CFLAGS_common += -Werror
+# CFLAGS_common += -Werror
 endif
 ifneq ($(GDB_DEBUG),)
 CFLAGS_common += -Og
