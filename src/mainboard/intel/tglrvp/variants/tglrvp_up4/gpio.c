@@ -51,6 +51,7 @@ static const struct pad_config gpio_table[] = {
 	PAD_CFG_NF(GPP_D19, NONE, DEEP, NF1), /* I2S_MCLK1 */
 	PAD_CFG_NF(GPP_F8, NONE, DEEP, NF1),  /* I2S_MCLK2 */
 
+	PAD_CFG_GPO(GPP_H1, 1, DEEP), /* AUDIO_PWREN */
 };
 
 /* Early pad configuration in bootblock */
