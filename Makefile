@@ -189,7 +189,6 @@ real-all: real-target
 .DELETE_ON_ERROR:
 
 $(KCONFIG_AUTOHEADER): $(KCONFIG_CONFIG) $(objutil)/kconfig/conf
-	echo "here 1"
 	+$(MAKE) -s oldconfig
 
 $(KCONFIG_AUTOCONFIG): $(KCONFIG_AUTOHEADER)

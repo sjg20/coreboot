@@ -456,10 +456,8 @@ void fsp_memory_init(bool s3wake)
 	struct memranges memmap;
 	struct range_entry prog_ranges[2];
 
-	if (1)
-		jump_to_u_boot("fsp_memory_init");
-	if (CONFIG(ELOG_BOOT_COUNT) && !s3wake)
-		boot_count_increment();
+// 	if (1)
+// 		jump_to_u_boot("fsp_memory_init");
 	elog_boot_notify(s3wake);
 
 	if (cbfs_boot_locate(&file_desc, name, NULL)) {

@@ -177,6 +177,7 @@ index aaa5e4a2925..ab664a55c63 100644
  CONFIG_TPM=y
  # CONFIG_EFI_LOADER is not set
 '''
+
 ramstage: e.g.
 
  * (chroot) ./build-board.sh coral
@@ -187,6 +188,8 @@ ramstage: e.g.
    cbfstool cb.rom remove -r RW_LEGACY -n altfw/u-boot && \
    cbfstool cb.rom add -r RW_LEGACY -f /tmp/b/chromebook_coral/u-boot.bin \
    -n altfw/u-boot -t raw && em100 -s -c w25q128fw -d cb.rom -r
+
+From dc, e.g.
 
 '''coreboot patches
 1ce84de80fd (HEAD -> coral5) docs
