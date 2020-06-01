@@ -253,7 +253,7 @@ void payload_load(void)
 		goto out;
 
 	printk(BIOS_INFO, "loaded\n");
-// 	jump_to_u_boot("payload");
+	jump_to_u_boot("payload");
 
 	mirror_payload(payload);
 
