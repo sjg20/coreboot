@@ -130,6 +130,9 @@ romstage:
  * Note coreboot romstage loads at fef20000, stack is around 0xfef06c1c but
    gets updated by U-Boot SPL. Put both SPL and U-Boot into CBFS:
  * (U-Boot) crosfw chromebook_coral
+ * coreboot config ROMSTAGE_ADDR
+	hex
+	default 0xfef24000
  * (chroot) cd ~/trunk/src/third_party/coreboot; ./build-board.sh coral
  * cp ~/cosarm/chroot/tmp/coreboot/coral/image-coral.serial.bin cb.rom && \
    cbfstool cb.rom remove -n fallback/payload && \

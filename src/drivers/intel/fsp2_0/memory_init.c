@@ -269,7 +269,7 @@ static uint32_t fsp_memory_settings_version(const struct fsp_header *hdr)
 void jump_to_u_boot(const char *whence)
 {
 	uint8_t *buf = (uint8_t *)0xfef10000;
-	int buf_size = 0x10000;
+	int buf_size = 0x14000;
 	struct cbfsf fh;
 	size_t fsize;
 	int ret;
@@ -305,6 +305,7 @@ void jump_to_u_boot(const char *whence)
 
 	printk(BIOS_INFO, "Loading %zx bytes to %p...\n\n", decompressed_size,
 	       buf);
+	print_buffer((unsigned long)buf + 0x10000, buf + 0x10000, 4, 0x20, 0);
 	fsize = cbfs_load_and_decompress(&fh.data, 0,
 					 region_device_sz(&fh.data),
 					 buf, buf_size, compression_algo);

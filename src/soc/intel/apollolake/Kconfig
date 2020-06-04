@@ -172,7 +172,7 @@ config X86_TOP4G_BOOTMEDIA_MAP
 
 config ROMSTAGE_ADDR
 	hex
-	default 0xfef20000
+	default 0xfef24000
 	help
 	  The base address (in CAR) where romstage should be linked
 
