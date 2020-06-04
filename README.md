@@ -211,7 +211,8 @@ ramstage: e.g.
 
 From dc, e.g.
 
- * cb-combine -t -s dc
+ * cb-combine -s dc
+ ( -t does not work since build-board.sh does not create RW_LEGACY)
  * Add call to VbExLegacy(1) in main.c before vboot_select_and_load_kernel()
 
 
