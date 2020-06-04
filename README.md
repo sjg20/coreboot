@@ -93,7 +93,23 @@ You can contact us directly on the coreboot mailing list:
 Booting into U-Boot
 -------------------
 
-You can boot from coreboot into U-Boot from several places on Apollo Lake (APL):
+You can boot from coreboot into U-Boot from several places on Apollo Lake (APL).
+
+cosarm/src/third_party/chromiumos-overlay$ pe
+760e63c7841 (HEAD -> coral) debug bootstage
+3b81dc29f18 quiet workon
+3156f8f9bd6 quiet coreboot
+3ac6559e567 disable new UI
+
+# 	if use menu_ui ; then
+# 		echo "CONFIG_MENU_UI=y" >> "${defconfig}"
+# 	elif use legacy_menu_ui ; then
+# 		echo "CONFIG_LEGACY_MENU_UI=y" >> "${defconfig}"
+# 	else
+# 		echo "CONFIG_LEGACY_CLAMSHELL_UI=y" >> "${defconfig}"
+# 	fi
+
+cc402e7a691 Automatic: master-release - Updating to a new version number from 13073.0.0
 
 bootblock:
 
@@ -184,12 +200,17 @@ ramstage: e.g.
  * Will be loaded at 0x1110000
  * Check CONFIG_SYS_TEXT_BASE in U-Boot is also 0x1110000
  * No need to touch CONFIG_DEBUG_UART_BASE as U-Boot reads coreboot sysinfo
+ * cb-combine -t -s ram
  * cp ~/cosarm/chroot/tmp/coreboot/coral/image-coral.serial.bin cb.rom && \
    cbfstool cb.rom remove -r RW_LEGACY -n altfw/u-boot && \
    cbfstool cb.rom add -r RW_LEGACY -f /tmp/b/chromebook_coral/u-boot.bin \
    -n altfw/u-boot -t raw && em100 -s -c w25q128fw -d cb.rom -r
 
 From dc, e.g.
+
+ * cb-combine -t -s dc
+ * Add call to VbExLegacy(1) in main.c before vboot_select_and_load_kernel()
+
 
 '''coreboot patches
 1ce84de80fd (HEAD -> coral5) docs
