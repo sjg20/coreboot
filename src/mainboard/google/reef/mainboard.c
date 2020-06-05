@@ -46,6 +46,8 @@ static void mainboard_init(void *chip_info)
 	boardid = board_id();
 	printk(BIOS_INFO, "Board ID: %d\n", boardid);
 
+// 	jump_to_u_boot("mainboard_init");
+
 	pads = variant_gpio_table(&num);
 	gpio_configure_pads(pads, num);
 
@@ -115,6 +117,8 @@ static unsigned long mainboard_write_acpi_tables(
 	const char *oem_id = NULL;
 	const char *oem_table_id = NULL;
 	uint32_t oem_revision = 0;
+
+// 	jump_to_u_boot("mainboard_write_acpi_tables");
 
 	start_addr = current;
 

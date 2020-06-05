@@ -377,6 +377,8 @@ static void do_fsp_memory_init(struct fsp_header *hdr, bool s3wake,
 	post_code(POST_FSP_MEMORY_INIT);
 	timestamp_add_now(TS_FSP_MEMORY_INIT_START);
 	status = fsp_raminit(&fspm_upd, fsp_get_hob_list_ptr());
+	printk(BIOS_INFO, "\n\nSaving hob to %p: %p\n", fsp_get_hob_list_ptr(),
+	       *(void **)fsp_get_hob_list_ptr());
 	post_code(POST_FSP_MEMORY_EXIT);
 	timestamp_add_now(TS_FSP_MEMORY_INIT_END);
 

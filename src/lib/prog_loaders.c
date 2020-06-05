@@ -192,6 +192,7 @@ void jump_to_u_boot(const char *whence)
 	h_func func;
 
 	printk(BIOS_INFO, "\n\nLoading U-Boot from '%s'\n", whence);
+	printk(BIOS_INFO, "sp=%p\n", &fh);
 
 // 	if (cbfs_boot_locate(&fh, name, &type))
 // 		return NULL;
@@ -253,7 +254,7 @@ void payload_load(void)
 		goto out;
 
 	printk(BIOS_INFO, "loaded\n");
-// 	jump_to_u_boot("payload");
+	jump_to_u_boot("payload");
 
 	mirror_payload(payload);
 

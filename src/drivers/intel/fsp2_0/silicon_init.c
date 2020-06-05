@@ -146,4 +146,5 @@ void fsp_silicon_init(bool s3wake)
 {
 	fsps_load(s3wake);
 	do_silicon_init(&fsps_hdr);
+//	jump_to_u_boot("after fsp_silicon_init");
 }
