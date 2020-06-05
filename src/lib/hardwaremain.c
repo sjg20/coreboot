@@ -211,10 +211,18 @@ static boot_state_t bs_write_tables(void *arg)
 	/* Now that we have collected all of our information
 	 * write our configuration tables.
 	 */
+	if (CONFIG(DEBUG_BOOT_STATE))
+		printk(BIOS_DEBUG, "write_tables()\n");
 	write_tables();
+	if (CONFIG(DEBUG_BOOT_STATE))
+		printk(BIOS_DEBUG, "write_tables() done\n\n");
 
 	timestamp_add_now(TS_FINALIZE_CHIPS);
+	if (CONFIG(DEBUG_BOOT_STATE))
+		printk(BIOS_DEBUG, "dev_finalize_chips()\n");
 	dev_finalize_chips();
+	if (CONFIG(DEBUG_BOOT_STATE))
+		printk(BIOS_DEBUG, "dev_finalize_chips() done\n\n");
 
 	return BS_PAYLOAD_LOAD;
 }
@@ -311,6 +319,10 @@ static void bs_call_callbacks(struct boot_state *state,
 				bscb, bscb->location);
 #endif
 			bscb->callback(bscb->arg);
+#if CONFIG(DEBUG_BOOT_STATE)
+			printk(BIOS_DEBUG, "BS: callback done (%p) @ %s.\n",
+				bscb, bscb->location);
+#endif
 			continue;
 		}
 
@@ -354,6 +366,9 @@ static void bs_walk_state_machine(void)
 			printk(BIOS_DEBUG, "BS: Entering %s state.\n",
 				state->name);
 
+// 		if (state->id == BS_WRITE_TABLES)
+// 			jump_to_u_boot("BS_WRITE_TABLES start");
+
 		bs_run_timers(0);
 
 		bs_sample_time(state);
@@ -368,11 +383,18 @@ static void bs_walk_state_machine(void)
 
 		post_code(state->post_code);
 
+		if (CONFIG(DEBUG_BOOT_STATE))
+			printk(BIOS_DEBUG, "\n\nRun state:\n");
 		next_id = state->run_state(state->arg);
+		if (CONFIG(DEBUG_BOOT_STATE))
+			printk(BIOS_DEBUG, "Run state done\n\n\n");
 
 		if (CONFIG(DEBUG_BOOT_STATE))
 			printk(BIOS_DEBUG, "BS: Exiting %s state.\n",
 			state->name);
+
+		if (state->id == BS_WRITE_TABLES)
+			jump_to_u_boot("BS_WRITE_TABLES end");
 
 		bs_sample_time(state);
 

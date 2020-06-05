@@ -200,20 +200,34 @@ void arch_write_tables(uintptr_t coreboot_table)
 	unsigned long rom_table_end = 0xf0000;
 
 	/* This table must be between 0x0f0000 and 0x100000 */
-	if (CONFIG(GENERATE_PIRQ_TABLE))
+	if (CONFIG(GENERATE_PIRQ_TABLE)) {
+		printk(BIOS_DEBUG, "pirq\n");
 		rom_table_end = write_pirq_table(rom_table_end);
+		printk(BIOS_DEBUG, "pirq done\n\n");
+	}
 
 	/* The smp table must be in 0-1K, 639K-640K, or 960K-1M */
-	if (CONFIG(GENERATE_MP_TABLE))
+	if (CONFIG(GENERATE_MP_TABLE)) {
+		printk(BIOS_DEBUG, "write_mptable done\n");
 		rom_table_end = write_mptable(rom_table_end);
+		printk(BIOS_DEBUG, "write_mptable done\n\n");
+	}
 
-	if (CONFIG(HAVE_ACPI_TABLES))
+	if (CONFIG(HAVE_ACPI_TABLES)) {
+		printk(BIOS_DEBUG, "write_acpi_table\n");
 		rom_table_end = write_acpi_table(rom_table_end);
+		printk(BIOS_DEBUG, "write_acpi_table done\n\n");
+	}
 
-	if (CONFIG(GENERATE_SMBIOS_TABLES))
+	if (CONFIG(GENERATE_SMBIOS_TABLES)) {
+		printk(BIOS_DEBUG, "write_smbios_table\n");
 		rom_table_end = write_smbios_table(rom_table_end);
+		printk(BIOS_DEBUG, "write_smbios_table done\n\n");
+	}
 
+	printk(BIOS_DEBUG, "forwarding\n");
 	sz = write_coreboot_forwarding_table(forwarding_table, coreboot_table);
+	printk(BIOS_DEBUG, "forwarding done\n\n");
 
 	forwarding_table += sz;
 	/* Align up to page boundary for historical consistency. */
