@@ -143,6 +143,8 @@ void itss_restore_irq_polarities(int start, int end)
 		mask &= ~((1U << irq_start) - 1);
 
 		reg = PCR_ITSS_IPC0_CONF + sizeof(uint32_t) * i;
+		printk(BIOS_INFO, "   - reg %x: mask %x, irq_snapshot[i] %x\n",
+		       reg, mask, irq_snapshot[i]);
 		pcr_rmw32(port, reg, ~mask, (mask & irq_snapshot[i]));
 	}
 

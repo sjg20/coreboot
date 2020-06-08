@@ -606,7 +606,8 @@ void *write_tables(void)
 	}
 
 	/* Add architecture specific tables. */
-	printk(BIOS_DEBUG, "arch_write_tables\n");
+	printk(BIOS_DEBUG, "arch_write_tables, cbtable_start=%zx\n",
+	       cbtable_start);
 	arch_write_tables(cbtable_start);
 	printk(BIOS_DEBUG, "arch_write_tables done\n");
 

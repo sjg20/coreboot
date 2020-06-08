@@ -370,6 +370,8 @@ static void do_fsp_memory_init(struct fsp_header *hdr, bool s3wake,
 	fsp_raminit = (void *)(hdr->image_base + hdr->memory_init_entry_offset);
 	fsp_debug_before_memory_init(fsp_raminit, upd, &fspm_upd);
 
+	print_buffer(0, &fspm_upd, 1, sizeof(fspm_upd), 0);
+
 	//printk(BIOS_INFO, "hdr->image_base at %p\n", hdr->image_base);
 	if (0)
 		jump_to_u_boot("before raminit");

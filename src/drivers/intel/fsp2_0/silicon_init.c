@@ -61,6 +61,8 @@ static void do_silicon_init(struct fsp_header *hdr)
 				 hdr->silicon_init_entry_offset);
 	fsp_debug_before_silicon_init(silicon_init, supd, upd);
 
+	print_buffer((unsigned long)upd, upd, 1, sizeof(*upd), 0);
+
 	timestamp_add_now(TS_FSP_SILICON_INIT_START);
 	post_code(POST_FSP_SILICON_INIT);
 	status = silicon_init(upd);
