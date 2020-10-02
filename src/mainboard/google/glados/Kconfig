@@ -88,4 +88,7 @@ config CONSOLE_SERIAL
 	bool
 	default n
 
+config USE_PM_ACPI_TIMER
+	default n
+
 endif
