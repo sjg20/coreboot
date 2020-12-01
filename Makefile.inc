@@ -1121,6 +1121,8 @@ $(REFCODE_BLOB): $(RMODTOOL)
 	$(RMODTOOL) -i $(CONFIG_REFCODE_BLOB_FILE) -o $@
 endif
 
+FIT_ENTRY=$(call strip_quotes, $(CONFIG_INTEL_TOP_SWAP_FIT_ENTRY_FMAP_REG))
+
 ifeq ($(CONFIG_HAVE_RAMSTAGE),y)
 RAMSTAGE=$(objcbfs)/ramstage.elf
 else
@@ -1134,13 +1136,42 @@ $(obj)/coreboot.rom: $(obj)/coreboot.pre $(RAMSTAGE) $(CBFSTOOL) $$(INTERMEDIATE
 	dd if=/dev/zero bs=$(call _toint,$(CONFIG_ROM_SIZE)) count=1 2> /dev/null | tr '\000' '\377' > $@.tmp
 	dd if=$(obj)/coreboot.pre of=$@.tmp bs=8192 conv=notrunc 2> /dev/null
 ifeq ($(CONFIG_CPU_INTEL_FIRMWARE_INTERFACE_TABLE),y)
-# Print final FIT table
+ifneq ($(CONFIG_UPDATE_IMAGE),y) # never update the bootblock
+ifeq ($(CONFIG_CPU_MICROCODE_CBFS_EXTERNAL_HEADER),y)
+	@printf "    UPDATE-FIT\n"
+	$(IFITTOOL) -f $@.tmp -a -n cpu_microcode_blob.bin -t 1 -s $(CONFIG_CPU_INTEL_NUM_FIT_ENTRIES) \
+	-r COREBOOT
+endif
+ifeq ($(CONFIG_USE_CPU_MICROCODE_CBFS_BINS),y)
+	@printf "    UPDATE-FIT\n"
+	$(IFITTOOL) -f $@.tmp -a -n cpu_microcode_blob.bin -t 1 -s $(CONFIG_CPU_INTEL_NUM_FIT_ENTRIES) \
+	-r COREBOOT
+endif
 	$(IFITTOOL) -f $@.tmp -D -r COREBOOT
-# Print final TS BOOTBLOCK FIT table
+
+# Second FIT in TOP_SWAP bootblock
 ifeq ($(CONFIG_INTEL_ADD_TOP_SWAP_BOOTBLOCK),y)
-	@printf "    TOP SWAP FIT table\n"
+# INTEL_TOP_SWAP_FIT_ENTRY_FMAP_REG adds a region as first ucode into the seconds bootblock
+ifneq ($(FIT_ENTRY),)
+	@printf "    UPDATE-FIT2\n"
+	$(IFITTOOL) -f $@.tmp -A -n $(FIT_ENTRY) -t 1 -s $(CONFIG_CPU_INTEL_NUM_FIT_ENTRIES) \
+	$(TS_OPTIONS) -r COREBOOT
+endif
+ifeq ($(CONFIG_CPU_MICROCODE_CBFS_EXTERNAL_HEADER),y)
+	@printf "    UPDATE-FIT2\n"
+	$(IFITTOOL) -f $@.tmp -a -n cpu_microcode_blob.bin -t 1 -s $(CONFIG_CPU_INTEL_NUM_FIT_ENTRIES) \
+	$(TS_OPTIONS) -r COREBOOT
+endif
+ifeq ($(CONFIG_USE_CPU_MICROCODE_CBFS_BINS),y)
+	@printf "    UPDATE-FIT2\n"
+	$(IFITTOOL) -f $@.tmp -a -n cpu_microcode_blob.bin -t 1 -s $(CONFIG_CPU_INTEL_NUM_FIT_ENTRIES) \
+	$(TS_OPTIONS) -r COREBOOT
+endif
 	$(IFITTOOL) -f $@.tmp -D $(TS_OPTIONS) -r COREBOOT
-endif # CONFIG_INTEL_ADD_TOP_SWAP_BOOTBLOCK
+
+endif
+
+endif # !CONFIG_UPDATE_IMAGE
 endif # CONFIG_CPU_INTEL_FIRMWARE_INTERFACE_TABLE
 	mv $@.tmp $@
 	@printf "    CBFSLAYOUT  $(subst $(obj)/,,$(@))\n\n"
