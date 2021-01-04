@@ -67,10 +67,6 @@ config OVERRIDE_DEVICETREE
 config INTEL_GMA_VBT_FILE
 	default "3rdparty/fsp/KabylakeFspBinPkg/SampleCode/Vbt/Vbt.bin"
 
-config MAX_CPUS
-	int
-	default 8
-
 config TPM_PIRQ
 	hex
 	default 0x18  # GPP_E0_IRQ
