@@ -65,11 +65,6 @@ config BOARD_GOOGLE_VOXEL
 	bool "-> Voxel"
 	select BOARD_GOOGLE_BASEBOARD_VOLTEER
 
-config BOARD_GOOGLE_BOLDAR
-	bool "-> Boldar"
-	select BOARD_GOOGLE_BASEBOARD_VOLTEER
-	select INTEL_CAR_NEM
-
 config BOARD_GOOGLE_ELEMI
 	bool "-> Elemi"
 	select BOARD_GOOGLE_BASEBOARD_VOLTEER
