@@ -1,5 +1,6 @@
 ifeq ($(CONFIG_INTEL_CBNT_SUPPORT),y)
 
+all-y += logging.c
 ramstage-y += cmos.c
 
 # The private key also contains the public key, so use that if a private key is provided.
