@@ -147,9 +147,9 @@ static void verified_boot_check_buffer(const char *name, void *start, size_t siz
 	if (start && size) {
 		struct vb2_hash tmp_hash;
 
-		status = vb2_hash_calculate(start, size, HASH_ALG, &tmp_hash);
+		status = vb2_hash_calculate(false, start, size, HASH_ALG, &tmp_hash);
 		if (!status)
-			memcpy(digest, hash.raw, DIGEST_SIZE);
+			memcpy(digest, tmp_hash.raw, DIGEST_SIZE);
 
 		if ((CONFIG(VENDORCODE_ELTAN_VBOOT) && memcmp((void *)(
 		    (uint8_t *)CONFIG_VENDORCODE_ELTAN_OEM_MANIFEST_LOC +
