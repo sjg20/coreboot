@@ -37,10 +37,10 @@ MPFR_VERSION=4.1.0
 MPC_VERSION=1.2.1
 GCC_VERSION=11.2.0
 BINUTILS_VERSION=2.37
-IASL_VERSION=20210331
+IASL_VERSION=20220331
 # CLANG version number
-CLANG_VERSION=12.0.0
-CMAKE_VERSION=3.20.3
+CLANG_VERSION=15.0.0
+CMAKE_VERSION=3.24.2
 NASM_VERSION=2.15.05
 
 # GCC toolchain archive locations
@@ -58,12 +58,13 @@ LLVM_ARCHIVE="https://github.com/llvm/llvm-project/releases/download/llvmorg-${C
 CLANG_ARCHIVE="https://github.com/llvm/llvm-project/releases/download/llvmorg-${CLANG_VERSION}/clang-${CLANG_VERSION}.src.tar.xz"
 CRT_ARCHIVE="https://github.com/llvm/llvm-project/releases/download/llvmorg-${CLANG_VERSION}/compiler-rt-${CLANG_VERSION}.src.tar.xz"
 CTE_ARCHIVE="https://github.com/llvm/llvm-project/releases/download/llvmorg-${CLANG_VERSION}/clang-tools-extra-${CLANG_VERSION}.src.tar.xz"
+LLVMCMAKE_ARCHIVE="https://github.com/llvm/llvm-project/releases/download/llvmorg-${CLANG_VERSION}/cmake-${CLANG_VERSION}.src.tar.xz"
 CMAKE_ARCHIVE="https://cmake.org/files/v${CMAKE_VERSION%.*}/cmake-${CMAKE_VERSION}.tar.gz"
 NASM_ARCHIVE="https://www.nasm.us/pub/nasm/releasebuilds/${NASM_VERSION}/nasm-${NASM_VERSION}.tar.bz2"
 
 ALL_ARCHIVES="$GMP_ARCHIVE $MPFR_ARCHIVE $MPC_ARCHIVE \
 	$GCC_ARCHIVE $BINUTILS_ARCHIVE $IASL_ARCHIVE \
-	$LLVM_ARCHIVE $CLANG_ARCHIVE \
+	$LLVM_ARCHIVE $CLANG_ARCHIVE $LLVMCMAKE_ARCHIVE \
 	$CRT_ARCHIVE $CTE_ARCHIVE $CMAKE_ARCHIVE $NASM_ARCHIVE"
 
 # GCC toolchain directories
@@ -80,6 +81,7 @@ LLVM_DIR="llvm-${CLANG_VERSION}.src"
 CLANG_DIR="clang-${CLANG_VERSION}.src"
 CRT_DIR="compiler-rt-${CLANG_VERSION}.src"
 CTE_DIR="clang-tools-extra-${CLANG_VERSION}.src"
+LLVMCMAKE_DIR="cmake-${CLANG_VERSION}.src"
 CMAKE_DIR="cmake-${CMAKE_VERSION}"
 NASM_DIR="nasm-${NASM_VERSION}"
 
@@ -121,7 +123,7 @@ normalize_dirs()
 	mkdir -p "$DESTDIR$TARGETDIR/lib"
 	test -d "$DESTDIR$TARGETDIR/lib32" && mv "$DESTDIR$TARGETDIR"/lib32/* "$DESTDIR$TARGETDIR/lib"
 	test -d "$DESTDIR$TARGETDIR/lib64" && mv "$DESTDIR$TARGETDIR"/lib64/* "$DESTDIR$TARGETDIR/lib"
-	rmdir -p "$DESTDIR$TARGETDIR/lib32" "$DESTDIR$TARGETDIR/lib64"
+	rm -rf "$DESTDIR$TARGETDIR/lib32" "$DESTDIR$TARGETDIR/lib64"
 
 	perl -pi -e "s,/lib32,/lib," "$DESTDIR$TARGETDIR"/lib/*.la
 	perl -pi -e "s,/lib64,/lib," "$DESTDIR$TARGETDIR"/lib/*.la
@@ -681,12 +683,13 @@ build_BINUTILS() {
 	if [ $TARGETARCH = "x86_64-elf" ]; then
 		ADDITIONALTARGET=",i386-elf"
 	fi
+	# shellcheck disable=SC2086
 	CC="$(hostcc target)" CXX="$(hostcxx target)" \
 	../binutils-${BINUTILS_VERSION}/configure --prefix="$TARGETDIR" \
 		--target=${TARGETARCH} --enable-targets=${TARGETARCH}${ADDITIONALTARGET} \
-		--disable-werror --disable-nls --enable-lto --enable-gold \
-		--enable-interwork --enable-multilib \
-		--enable-plugins --enable-multilibs \
+		--disable-werror --disable-nls --enable-lto \
+		--enable-gold --enable-multilib \
+		${BINUTILS_OPTIONS} \
 		CFLAGS="$HOSTCFLAGS" \
 		CXXFLAGS="$HOSTCFLAGS" \
 		|| touch .failed
@@ -805,11 +808,12 @@ build_LLVM() {
 	ln -nsf "$CLANG_DIR" ../clang
 	ln -nsf "$CTE_DIR" ../clang-tools-extra
 	ln -nsf "$CRT_DIR" ../compiler-rt
+	ln -nsf "$LLVMCMAKE_DIR" ../cmake
 
 	$CMAKE -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$DESTDIR$TARGETDIR" \
 		-DCLANG_VENDOR="coreboot toolchain v$CROSSGCC_VERSION - " \
 		-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;compiler-rt" \
-		-DCMAKE_BUILD_TYPE=Release ../llvm || touch .failed
+		-DLLVM_INCLUDE_BENCHMARKS="OFF" -DCMAKE_BUILD_TYPE=Release ../llvm || touch .failed
 	# shellcheck disable=SC2086
 	$MAKE $JOBS || touch .failed
 	$MAKE install || touch .failed
@@ -834,8 +838,6 @@ build_CMAKE() {
 	# shellcheck disable=SC2086
 	$MAKE $JOBS || touch .failed
 	$MAKE install DESTDIR=$DESTDIR || touch .failed
-
-	normalize_dirs
 }
 
 build_NASM() {
@@ -935,7 +937,9 @@ case "$TARGETARCH" in
 	x86_64*)		TARGETARCH=x86_64-elf;;
 	i386-elf)		;;
 	i386-mingw32)		;;
-	riscv-elf)		TARGETARCH=riscv64-elf;;
+	riscv-elf)		TARGETARCH=riscv64-elf
+				GCC_OPTIONS="$GCC_OPTIONS --with-isa-spec=20191213"
+				BINUTILS_OPTIONS="$BINUTILS_OPTIONS --with-isa-spec=20191213";;
 	powerpc64*-linux*)	;;
 	i386*)			TARGETARCH=i386-elf;;
 	arm*)			TARGETARCH=arm-eabi;;
@@ -955,7 +959,7 @@ case "$PACKAGE" in
 	CLANG|clang)
 		NAME="LLVM clang"
 		LLVM_VERSION=${CLANG_VERSION}
-		PACKAGES="CMAKE LLVM CLANG CRT CTE"
+		PACKAGES="CMAKE LLVM CLANG CRT CTE LLVMCMAKE"
 		CMAKE=${DESTDIR}${TARGETDIR}/bin/cmake
 		;;
 	IASL|iasl)
