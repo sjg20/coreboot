@@ -62,6 +62,19 @@ with the release 4.20.
   * Intel Galileo mainboard
 
 
+### Intel Quark
+
+The SoC Intel Quark is unmaintained and different efforts to revive it failed.
+Also, the only user of this platform ever was the Galileo board.
+
+Thus, to reduce the maintanence overhead for the community, it is deprecated
+from this release on and support for the following components will be dropped
+with the release 4.20.
+
+  * Intel Quark SoC
+  * Intel Galileo mainboard
+
+
 ### LEGACY_SMP_INIT
 
 Legacy SMP init will be removed from the coreboot master branch
