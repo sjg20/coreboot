@@ -2,13 +2,14 @@
 
 #include <commonlib/helpers.h>
 #include <console/console.h>
+#include <cpu/amd/amd64_save_state.h>
+#include <cpu/intel/smm_reloc.h>
+#include <cpu/x86/legacy_save_state.h>
 #include <cpu/x86/mp.h>
+#include <cpu/x86/smm.h>
+#include <mainboard/emulation/qemu-i440fx/fw_cfg.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <cpu/intel/smm_reloc.h>
-#include <cpu/amd/amd64_save_state.h>
-#include <cpu/x86/legacy_save_state.h>
-#include <mainboard/emulation/qemu-i440fx/fw_cfg.h>
 
 static void get_smm_info(uintptr_t *perm_smbase, size_t *perm_smsize,
 	      size_t *smm_save_state_size)
