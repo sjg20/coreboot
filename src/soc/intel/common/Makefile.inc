@@ -71,12 +71,11 @@ endif
 
 # SI_DESC contains soft straps that may modify security-relevant behavior, so it should be
 # verified by GSCVD.
-# Disable temporarily for troubleshooting of b/247645824
-#vboot-gscvd-ranges += $(shell ( \
-#	offset=$$($(call fmap-section-offset-cmd,SI_DESC)) ;\
-#	if [ -n "$$offset" ]; then \
-#		printf "%x:%x" $$offset $$($(call fmap-section-size-cmd,SI_DESC)) ;\
-#	fi ;\
-#))
+vboot-gscvd-ranges += $(shell ( \
+	offset=$$($(call fmap-section-offset-cmd,SI_DESC)) ;\
+	if [ -n "$$offset" ]; then \
+		printf "%x:%x" $$offset $$($(call fmap-section-size-cmd,SI_DESC)) ;\
+	fi ;\
+))
 
 endif
