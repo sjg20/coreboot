@@ -323,6 +323,7 @@ void ich7_setup_cir(void);
 #define DEVACT_STS	0x44
 #define SS_CNT		0x50
 #define C3_RES		0x54
+#define TCO1_CNT	0x68
 
 #if CONFIG(TCO_SPACE_NOT_YET_SPLIT)
 #define TCO1_CNT	0x68
