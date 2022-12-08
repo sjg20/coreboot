@@ -2,6 +2,7 @@
 
 #include <intelblocks/tcss.h>
 #include <soc/iomap.h>
+#include <soc/tcss.h>
 
 /*
  * Type C Subsystem(TCSS) topology provides Runtime D3 support for USB host controller(xHCI),
