@@ -114,14 +114,14 @@ Device (I2C1)
 
 	Method (_PS3)
 	{
-		Or (PSAT, 0x00000003, PSAT)
-		Or (PSAT, 0x00000000, PSAT)
+		PSAT |= 3
+		PSAT |= 0
 	}
 
 	Method (_PS0)
 	{
 		And (PSAT, 0xfffffffc, PSAT)
-		Or (PSAT, 0x00000000, PSAT)
+		PSAT |= 0
 	}
 }
 
@@ -175,14 +175,14 @@ Device (I2C2)
 
 	Method (_PS3)
 	{
-		Or (PSAT, 0x00000003, PSAT)
-		Or (PSAT, 0x00000000, PSAT)
+		PSAT |= 3
+		PSAT |= 0
 	}
 
 	Method (_PS0)
 	{
 		And (PSAT, 0xfffffffc, PSAT)
-		Or (PSAT, 0x00000000, PSAT)
+		PSAT |= 0
 	}
 }
 
@@ -236,14 +236,14 @@ Device (I2C3)
 
 	Method (_PS3)
 	{
-		Or (PSAT, 0x00000003, PSAT)
-		Or (PSAT, 0x00000000, PSAT)
+		PSAT |= 3
+		PSAT |= 0
 	}
 
 	Method (_PS0)
 	{
 		And (PSAT, 0xfffffffc, PSAT)
-		Or (PSAT, 0x00000000, PSAT)
+		PSAT |= 0
 	}
 }
 
@@ -297,14 +297,14 @@ Device (I2C4)
 
 	Method (_PS3)
 	{
-		Or (PSAT, 0x00000003, PSAT)
-		Or (PSAT, 0x00000000, PSAT)
+		PSAT |= 3
+		PSAT |= 0
 	}
 
 	Method (_PS0)
 	{
 		And (PSAT, 0xfffffffc, PSAT)
-		Or (PSAT, 0x00000000, PSAT)
+		PSAT |= 0
 	}
 }
 
@@ -358,14 +358,14 @@ Device (I2C5)
 
 	Method (_PS3)
 	{
-		Or (PSAT, 0x00000003, PSAT)
-		Or (PSAT, 0x00000000, PSAT)
+		PSAT |= 3
+		PSAT |= 0
 	}
 
 	Method (_PS0)
 	{
 		And (PSAT, 0xfffffffc, PSAT)
-		Or (PSAT, 0x00000000, PSAT)
+		PSAT |= 0
 	}
 }
 
@@ -419,14 +419,14 @@ Device (I2C6)
 
 	Method (_PS3)
 	{
-		Or (PSAT, 0x00000003, PSAT)
-		Or (PSAT, 0x00000000, PSAT)
+		PSAT |= 3
+		PSAT |= 0
 	}
 
 	Method (_PS0)
 	{
 		And (PSAT, 0xfffffffc, PSAT)
-		Or (PSAT, 0x00000000, PSAT)
+		PSAT |= 0
 	}
 }
 
@@ -480,14 +480,14 @@ Device (I2C7)
 
 	Method (_PS3)
 	{
-		Or (PSAT, 0x00000003, PSAT)
-		Or (PSAT, 0x00000000, PSAT)
+		PSAT |= 3
+		PSAT |= 0
 	}
 
 	Method (_PS0)
 	{
 		And (PSAT, 0xfffffffc, PSAT)
-		Or (PSAT, 0x00000000, PSAT)
+		PSAT |= 0
 	}
 }
 
@@ -533,14 +533,14 @@ Device (SPI1)
 
 	Method (_PS3)
 	{
-		Or (PSAT, 0x00000003, PSAT)
-		Or (PSAT, 0x00000000, PSAT)
+		PSAT |= 3
+		PSAT |= 0
 	}
 
 	Method (_PS0)
 	{
 		And (PSAT, 0xfffffffc, PSAT)
-		Or (PSAT, 0x00000000, PSAT)
+		PSAT |= 0
 	}
 }
 
@@ -642,14 +642,14 @@ Device (UAR1)
 
 	Method (_PS3)
 	{
-		Or (PSAT, 0x00000003, PSAT)
-		Or (PSAT, 0x00000000, PSAT)
+		PSAT |= 3
+		PSAT |= 0
 	}
 
 	Method (_PS0)
 	{
 		And (PSAT, 0xfffffffc, PSAT)
-		Or (PSAT, 0x00000000, PSAT)
+		PSAT |= 0
 	}
 }
 
@@ -695,13 +695,13 @@ Device (UAR2)
 
 	Method (_PS3)
 	{
-		Or (PSAT, 0x00000003, PSAT)
-		Or (PSAT, 0x00000000, PSAT)
+		PSAT |= 3
+		PSAT |= 0
 	}
 
 	Method (_PS0)
 	{
 		And (PSAT, 0xfffffffc, PSAT)
-		Or (PSAT, 0x00000000, PSAT)
+		PSAT |= 0
 	}
 }

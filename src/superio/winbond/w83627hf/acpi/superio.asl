@@ -259,7 +259,7 @@ Device(SIO) {
 			EXIT_CONFIG_MODE ()
 
 			/* Calculate full IO port address */
-			Or(Local1 << 8, Local0, Local0)
+			Local0 |= Local1 << 8
 
 			/* Modify the resource template and return it */
 			CreateWordField (CRS, IO0._MIN, IMIN)
@@ -305,7 +305,7 @@ Device(SIO) {
 			Local2 = IO1L
 			EXIT_CONFIG_MODE ()
 			Local1 <<= 8
-			Or(Local1, Local2, Local1)
+			Local1 |= Local2
 			If (!Local0) {
 				Return (FDE)
 			}
@@ -403,7 +403,7 @@ Device(SIO) {
 			And(Arg0, 0x07, Local0)
 			ENTER_CONFIG_MODE (1)
 			And(OPT1, 0x3, Local1)
-			Or(Local1, Local0, OPT1)
+			OPT1 = Local1 | Local0
 			EXIT_CONFIG_MODE()
 		}
 
@@ -484,7 +484,7 @@ Device(SIO) {
 			Local5 = IRQ0
 			EXIT_CONFIG_MODE ()
 			/* Calculate IO port and modify template */
-			Or(Local1 << 8, Local0, Local0)
+			Local0 |= Local1 << 8
 			IOP0 = Local1
 			IOR0 = Local1
 
@@ -581,7 +581,7 @@ Device(SIO) {
 			/* Mode */
 			Local3 = OPT1
 			And (Local3, 0xF8, Local3)
-			Or (Local2, Local3, OPT1)
+			OPT1 = Local2 | Local3
 			/* DMA off */
 			DMA0 = 0x04
 			/* IRQ */
@@ -653,7 +653,7 @@ Device(SIO) {
 			Local1 = IO1H
 			Local2 = IRQ0
 			EXIT_CONFIG_MODE ()
-			Or(Local1 << 8, Local0, Local0)
+			Local0 |= Local1 << 8
 
 			CreateWordField (CRS, IO0._MIN, IMIN)
 			IMIN = Local0
@@ -779,7 +779,7 @@ Device(SIO) {
 			Local1 = IO1H
 			Local2 = IRQ0
 			EXIT_CONFIG_MODE ()
-			Or(Local1 << 8, Local0, Local0)
+			Local0 |= Local1 << 8
 
 			CreateWordField (CRS, IO0._MIN, IMIN)
 			IMIN = Local0
@@ -905,7 +905,7 @@ Device(SIO) {
 			Local0 = IO1L
 			Local2 = IRQ0
 			EXIT_CONFIG_MODE ()
-			Or(Local1 << 8, Local0, Local0)
+			Local0 |= Local1 << 8
 
 			CreateWordField (CRS, IO0._MIN, IMIN)
 			IMIN = Local0
@@ -1009,7 +1009,7 @@ Device(SIO) {
 			Local1 = IO1H
 			Local2 = IRQ0
 			EXIT_CONFIG_MODE ()
-			Or(Local1 << 8, Local0, Local0)
+			Local0 |= Local1 << 8
 
 			CreateWordField (CRS, IO0._MIN, IMIN)
 			IMIN = Local0
@@ -1105,8 +1105,8 @@ Device(SIO) {
 			Local4 = IRQ0
 			EXIT_CONFIG_MODE ()
 
-			Or(Local1 << 8, Local0, Local0)
-			Or(Local3 << 8, Local2, Local2)
+			Local0 |= Local1 << 8
+			Local2 |= Local3 << 8
 
 			CreateWordField (CRS, IO0._MIN, IMIN)
 			IMIN = Local0
@@ -1276,7 +1276,7 @@ Device(SIO) {
 			Local2 = IRQ0
 			EXIT_CONFIG_MODE ()
 
-			Or(Local1 << 8, Local0, Local0)
+			Local0 |= Local1 << 8
 
 			CreateWordField (CRS, IO0._MIN, IMIN)
 			CreateWordField (CRS, IO0._MAX, IMAX)
@@ -1331,7 +1331,7 @@ Device(SIO) {
 			Local2 = IRQ1
 			EXIT_CONFIG_MODE ()
 
-			Or(Local1 << 8, Local0, Local0)
+			Local0 |= Local1 << 8
 
 			CreateWordField (CRS, IO0._MIN, IMIN)
 			CreateWordField (CRS, IO0._MAX, IMAX)
@@ -1356,7 +1356,7 @@ Device(SIO) {
 		ENTER_CONFIG_MODE (9)
 		Local0 = OPT4
 		And(Local0, 63, Local0)
-		Or(Local0, And(Arg0, 0x03) << 6, OPT4)
+		OPT4 = Local0 | (And(Arg0, 0x03) << 6)
 		EXIT_CONFIG_MODE ()
 	}
 
@@ -1366,7 +1366,7 @@ Device(SIO) {
 		ENTER_CONFIG_MODE (8)
 		Local0 = OPT4
 		And(Local0, 63, Local0)
-		Or(Local0, And(Arg0, 0x03) << 6, OPT4)
+		OPT4 = Local0 | (And(Arg0, 0x03) << 6)
 		EXIT_CONFIG_MODE ()
 	}
 
@@ -1430,7 +1430,7 @@ Device(SIO) {
 			Local2 = IRQ1
 			EXIT_CONFIG_MODE ()
 
-			Or(Local1 << 8, Local0, Local0)
+			Local0 |= Local1 << 8
 
 			CreateWordField (CRS, IO0._MIN, IMIN)
 			CreateWordField (CRS, IO0._MAX, IMAX)
