@@ -59,6 +59,15 @@ it.
 
 
 
+### Toolchain updates
+
+* Upgrade LLVM from 15.0.0 to 15.0.6
+* Upgrade CMake from 3.24.2 to 3.25.0
+* Upgrade IASL from 20220331 to 20221020
+* Upgrade MPFR from 4.1.0 to 4.1.1
+
+
+
 Additional coreboot changes
 ---------------------------
 
