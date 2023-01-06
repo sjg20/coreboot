@@ -67,6 +67,14 @@ it.
 * Upgrade MPFR from 4.1.0 to 4.1.1
 
 
+### Finished the conversion to ASL 2.0 syntax
+
+Until recently, coreboot still contained lots of code using the legacy
+ASL syntax. However, all ASL code was ported over to make use of the
+ASL 2.0 syntax and from this point on new ASL code should make use of
+it.
+
+
 
 Additional coreboot changes
 ---------------------------
