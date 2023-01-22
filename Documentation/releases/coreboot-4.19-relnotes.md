@@ -44,14 +44,6 @@ We can also LZMA compress the file since it is never read by firmware
 itself and only intended for later re-extraction via cbfstool, which
 always has LZMA support included.
 
-### Finished the conversion to ASL 2.0 syntax
-
-Until recently, coreboot still contained lots of code using the legacy
-ASL syntax. However, all ASL code was ported over to make use of the
-ASL 2.0 syntax and from this point on new ASL code should make use of
-it.
-
-
 
 ### Toolchain updates
 
