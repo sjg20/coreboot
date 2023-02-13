@@ -131,6 +131,12 @@ fail:
 static struct prog global_payload =
 	PROG_INIT(PROG_PAYLOAD, CONFIG_CBFS_PREFIX "/payload");
 
+static struct prog cli_payload =
+	PROG_INIT(PROG_U_BOOT, "altfw/u-boot");
+
+/* this is pointed to one of the above in payload_load() */
+static struct prog *selected_payload;
+
 void payload_preload(void)
 {
 	if (!CONFIG(CBFS_PRELOAD))
@@ -141,19 +147,35 @@ void payload_preload(void)
 
 void payload_load(void)
 {
-	struct prog *payload = &global_payload;
+	struct prog *payload;
 	void *mapping;
 
 	timestamp_add_now(TS_LOAD_PAYLOAD);
 
+	/* select the CLI payload if requested and permitted */
+	payload = &global_payload;
+	if (vboot_should_start_cli()) {
+		printk(BIOS_INFO, "Starting CLI as requested...\n");
+		payload = &cli_payload;
+	}
+
 	if (prog_locate_hook(payload))
 		goto out;
 
+	selected_payload = payload;
 	payload->cbfs_type = CBFS_TYPE_QUERY;
-	mapping = cbfs_type_map(prog_name(payload), NULL, &payload->cbfs_type);
-
-	if (!mapping)
-		goto out;
+	if (vboot_should_start_cli()) {
+		mapping = cbfs_unverified_area_type_map("RW_LEGACY", prog_name(payload),
+							NULL, &payload->cbfs_type);
+		if (!mapping) {
+			printk(BIOS_ERR, "Failed to load CLI\n");
+			goto out;
+		}
+	} else {
+		mapping = cbfs_type_map(prog_name(payload), NULL, &payload->cbfs_type);
+		if (!mapping)
+			goto out;
+	}
 
 	switch (prog_cbfs_type(payload)) {
 	case CBFS_TYPE_SELF: /* Simple ELF */
@@ -179,7 +201,7 @@ out:
 
 void payload_run(void)
 {
-	struct prog *payload = &global_payload;
+	struct prog *payload = selected_payload;
 
 	/* Reset to booting from this image as late as possible */
 	boot_successful();
