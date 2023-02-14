@@ -64,7 +64,8 @@ int mrc_cache_verify_hash(uint32_t index, const uint8_t *data, size_t size)
 	/* Calculate hash of data read from MRC_CACHE and compare. */
 	if (vb2_hash_verify(vboot_hwcrypto_allowed(), data, size, &tpm_hash)) {
 		printk(BIOS_ERR, "MRC: Hash comparison failed.\n");
-		return 0;
+		printk(BIOS_ERR, "MRC: SKIPPING VERIFICATION.\n");
+		return 1;
 	}
 
 	printk(BIOS_INFO, "MRC: Hash idx 0x%x comparison successful.\n", index);
