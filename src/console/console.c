@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 
 #include <console/cbmem_console.h>
+#include <console/console.h>
 #include <console/flash.h>
 #include <console/i2c_smbus.h>
 #include <console/ne2k.h>
@@ -12,7 +13,73 @@
 #include <console/system76_ec.h>
 #include <console/uart.h>
 #include <console/usb.h>
+#include <ctype.h>
 #include <types.h>
+
+#define MAX_LINE_LENGTH_BYTES (64)
+#define DEFAULT_LINE_LENGTH_BYTES (16)
+typedef unsigned int uint;
+
+int print_buffer(unsigned long addr, const void *data, unsigned int width,
+		 unsigned int count, unsigned int linelen)
+{
+	/* linebuf as a union causes proper alignment */
+	union linebuf {
+		uint32_t ui[MAX_LINE_LENGTH_BYTES/sizeof(uint32_t) + 1];
+		uint16_t us[MAX_LINE_LENGTH_BYTES/sizeof(uint16_t) + 1];
+		uint8_t  uc[MAX_LINE_LENGTH_BYTES/sizeof(uint8_t) + 1];
+	} lb;
+	int i;
+	uint32_t x;
+
+	if (linelen*width > MAX_LINE_LENGTH_BYTES)
+		linelen = MAX_LINE_LENGTH_BYTES / width;
+	if (linelen < 1)
+		linelen = DEFAULT_LINE_LENGTH_BYTES / width;
+
+	while (count) {
+		uint thislinelen = linelen;
+		printk(BIOS_INFO, "%08lx:", addr);
+
+		/* check for overflow condition */
+		if (count < thislinelen)
+			thislinelen = count;
+
+		/* Copy from memory into linebuf and print hex values */
+		for (i = 0; i < thislinelen; i++) {
+			if (width == 4)
+				x = lb.ui[i] = *(volatile uint32_t *)data;
+			else if (width == 2)
+				x = lb.us[i] = *(volatile uint16_t *)data;
+			else
+				x = lb.uc[i] = *(volatile uint8_t *)data;
+			printk(BIOS_INFO, " %0*x", width * 2, x);
+			data += width;
+		}
+
+		while (thislinelen < linelen) {
+			/* fill line with whitespace for nice ASCII print */
+			for (i=0; i<width*2+1; i++)
+				printk(BIOS_INFO, " ");
+			linelen--;
+		}
+
+		/* Print data in ASCII characters */
+		for (i = 0; i < thislinelen * width; i++) {
+			if (!isprint(lb.uc[i]) || lb.uc[i] >= 0x80)
+				lb.uc[i] = '.';
+		}
+		lb.uc[i] = '\0';
+		printk(BIOS_INFO, "    %s\n", lb.uc);
+
+		/* update references */
+		addr += thislinelen * width;
+		count -= thislinelen;
+
+	}
+
+	return 0;
+}
 
 /* Note: when adding a new console, make sure you update the definition of
    HAS_ONLY_FAST_CONSOLES in <console.h>! */
