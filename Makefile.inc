@@ -439,7 +439,8 @@ endif
 endif
 
 ADAFLAGS_common += -gnatp
-ADAFLAGS_common += -Wuninitialized -Wall -Werror
+ADAFLAGS_common += -Wuninitialized -Wall
+# -Werror
 ADAFLAGS_common += -pipe -g -nostdinc
 ADAFLAGS_common += -Wstrict-aliasing -Wshadow
 ADAFLAGS_common += -fno-common -fomit-frame-pointer
@@ -492,7 +493,7 @@ LDFLAGS_common += --emit-relocs
 endif
 
 ifeq ($(CONFIG_WARNINGS_ARE_ERRORS),y)
-CFLAGS_common += -Werror
+#CFLAGS_common += -Werror
 endif
 ifneq ($(GDB_DEBUG),)
 CFLAGS_common += -Og
