@@ -204,8 +204,8 @@ void *_cbfs_load(const char *name, void *buf, size_t *size_inout, bool force_ro)
 	return do_load(&mdata, offset, buf, size_inout, false);
 }
 
-void *_cbfs_unverified_area_load(const char *area, const char *name, void *buf,
-				 size_t *size_inout)
+void *_cbfs_unverified_area_type_load(const char *area, const char *name, void *buf,
+				 size_t *size_inout, enum cbfs_type *type)
 {
 	struct cbfs_dev dev;
 	union cbfs_mdata mdata;
@@ -219,6 +219,17 @@ void *_cbfs_unverified_area_load(const char *area, const char *name, void *buf,
 	if (cbfs_lookup(&dev, name, &mdata, &data_offset, NULL)) {
 		ERROR("'%s' not found in '%s'\n", name, area);
 		return NULL;
+	}
+
+	if (type) {
+		const enum cbfs_type real_type = be32toh(mdata.h.type);
+		if (*type == CBFS_TYPE_QUERY)
+			*type = real_type;
+		else if (*type != real_type) {
+			ERROR("'%s' type mismatch (is %u, expected %u)\n",
+			      mdata.h.filename, real_type, *type);
+			return NULL;
+		}
 	}
 
 	return do_load(&mdata, dev.offset + data_offset, buf, size_inout, true);

@@ -604,6 +604,7 @@ static void test_cbfs_unverified_area_map(void **state)
 	struct cbfs_test_state *s = *state;
 	void *mapping = NULL;
 	size_t size_out = 0;
+	enum cbfs_type type;
 	const struct cbfs_test_file *cbfs_files[] = {
 		&test_file_int_1, &test_file_2, NULL, &test_file_int_3,
 		&test_file_int_2, NULL,		NULL, &test_file_1,
@@ -621,9 +622,13 @@ static void test_cbfs_unverified_area_map(void **state)
 			   (const union cbfs_mdata *)&cbfs_buf[foffset],
 			   foffset + be32toh(test_file_int_1.header.offset));
 	will_return(cbfs_find_attr, NULL);
-	mapping = cbfs_unverified_area_map("TEST_AREA", TEST_DATA_INT_1_FILENAME, &size_out);
+	/* query the file type */
+	type = CBFS_TYPE_QUERY;
+	mapping = cbfs_unverified_area_type_map("TEST_AREA", TEST_DATA_INT_1_FILENAME,
+						&size_out, &type);
 	assert_non_null(mapping);
 	assert_int_equal(TEST_DATA_INT_1_SIZE, size_out);
+	assert_int_equal(CBFS_TYPE_RAW, type);
 	assert_memory_equal(test_data_int_1, mapping, TEST_DATA_INT_1_SIZE);
 	cbfs_unmap(mapping);
 
@@ -682,6 +687,22 @@ static void test_cbfs_unverified_area_map(void **state)
 	size_out = 0;
 	expect_cbfs_lookup("invalid_file", CB_CBFS_NOT_FOUND, 0, 0);
 	mapping = cbfs_unverified_area_map("TEST_AREA", "invalid_file", &size_out);
+	assert_null(mapping);
+
+	/* use the correct file type */
+	type = CBFS_TYPE_RAW;
+	mapping = cbfs_unverified_area_type_map("TEST_AREA", TEST_DATA_INT_1_FILENAME,
+						&size_out, &type);
+	assert_non_null(mapping);
+	assert_int_equal(TEST_DATA_INT_1_SIZE, size_out);
+	assert_int_equal(CBFS_TYPE_RAW, type);
+	assert_memory_equal(test_data_int_1, mapping, TEST_DATA_INT_1_SIZE);
+	cbfs_unmap(mapping);
+
+	/* use the wrong file type */
+	type = CBFS_TYPE_SELF;
+	mapping = cbfs_unverified_area_type_map("TEST_AREA", TEST_DATA_INT_1_FILENAME,
+						&size_out, &type);
 	assert_null(mapping);
 }
 

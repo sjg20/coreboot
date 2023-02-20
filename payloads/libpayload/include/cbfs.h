@@ -24,6 +24,8 @@ static inline void *cbfs_map(const char *name, size_t *size_out);
 static inline void *cbfs_ro_map(const char *name, size_t *size_out);
 static inline void *cbfs_unverified_area_map(const char *area, const char *name,
 					     size_t *size_out);
+static inline void *cbfs_unverified_area_type_map(const char *area, const char *name,
+					     size_t *size_out, enum cbfs_type *type);
 
 void cbfs_unmap(void *mapping);
 
@@ -43,8 +45,8 @@ ssize_t _cbfs_boot_lookup(const char *name, bool force_ro, union cbfs_mdata *mda
 
 void *_cbfs_load(const char *name, void *buf, size_t *size_inout, bool force_ro);
 
-void *_cbfs_unverified_area_load(const char *area, const char *name, void *buf,
-				 size_t *size_inout);
+void *_cbfs_unverified_area_type_load(const char *area, const char *name, void *buf,
+				 size_t *size_inout, enum cbfs_type *type);
 
 /**********************************************************************************************
  *                                  INLINE IMPLEMENTATIONS                                    *
@@ -63,7 +65,13 @@ static inline void *cbfs_ro_map(const char *name, size_t *size_out)
 static inline void *cbfs_unverified_area_map(const char *area, const char *name,
 					     size_t *size_out)
 {
-	return _cbfs_unverified_area_load(area, name, NULL, size_out);
+	return _cbfs_unverified_area_type_load(area, name, NULL, size_out, NULL);
+}
+
+static inline void *cbfs_unverified_area_type_map(const char *area, const char *name,
+					     size_t *size_out, enum cbfs_type *type)
+{
+	return _cbfs_unverified_area_type_load(area, name, NULL, size_out, type);
 }
 
 static inline size_t cbfs_load(const char *name, void *buf, size_t size)
@@ -82,10 +90,19 @@ static inline size_t cbfs_ro_load(const char *name, void *buf, size_t size)
 		return 0;
 }
 
+static inline size_t cbfs_unverified_area_type_load(const char *area, const char *name, void *buf,
+					       size_t size, enum cbfs_type *type)
+{
+	if (_cbfs_unverified_area_type_load(area, name, buf, &size, type))
+		return size;
+	else
+		return 0;
+}
+
 static inline size_t cbfs_unverified_area_load(const char *area, const char *name, void *buf,
 					       size_t size)
 {
-	if (_cbfs_unverified_area_load(area, name, buf, &size))
+	if (_cbfs_unverified_area_type_load(area, name, buf, &size, NULL))
 		return size;
 	else
 		return 0;

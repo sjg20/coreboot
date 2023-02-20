@@ -83,6 +83,8 @@ static inline size_t cbfs_ro_type_load(const char *name, void *buf, size_t size,
 				    enum cbfs_type *type);
 static inline size_t cbfs_unverified_area_load(const char *area, const char *name,
 					       void *buf, size_t size);
+static inline size_t cbfs_unverified_area_type_load(const char *area, const char *name,
+						    void *buf, size_t size, enum cbfs_type *type);
 
 static inline void *cbfs_map(const char *name, size_t *size_out);
 static inline void *cbfs_ro_map(const char *name, size_t *size_out);
@@ -90,6 +92,8 @@ static inline void *cbfs_type_map(const char *name, size_t *size_out, enum cbfs_
 static inline void *cbfs_ro_type_map(const char *name, size_t *size_out, enum cbfs_type *type);
 static inline void *cbfs_unverified_area_map(const char *area, const char *name,
 					      size_t *size_out);
+static inline void *cbfs_unverified_area_type_map(const char *area, const char *name,
+					      size_t *size_out, enum cbfs_type *type);
 
 static inline void *cbfs_alloc(const char *name, cbfs_allocator_t allocator, void *arg,
 			       size_t *size_out);
@@ -102,6 +106,9 @@ static inline void *cbfs_ro_type_alloc(const char *name, cbfs_allocator_t alloca
 static inline void *cbfs_unverified_area_alloc(const char *area, const char *name,
 						cbfs_allocator_t allocator, void *arg,
 						size_t *size_out);
+static inline void *cbfs_unverified_area_type_alloc(const char *area, const char *name,
+						    cbfs_allocator_t allocator, void *arg,
+						    size_t *size_out, enum cbfs_type *type);
 
 static inline void *cbfs_cbmem_alloc(const char *name, uint32_t cbmem_id, size_t *size_out);
 static inline void *cbfs_ro_cbmem_alloc(const char *name, uint32_t cbmem_id, size_t *size_out);
@@ -198,8 +205,9 @@ enum cb_err _cbfs_boot_lookup(const char *name, bool force_ro,
 void *_cbfs_alloc(const char *name, cbfs_allocator_t allocator, void *arg,
 		  size_t *size_out, bool force_ro, enum cbfs_type *type);
 
-void *_cbfs_unverified_area_alloc(const char *area, const char *name,
-				  cbfs_allocator_t allocator, void *arg, size_t *size_out);
+void *_cbfs_unverified_area_type_alloc(const char *area, const char *name,
+				  cbfs_allocator_t allocator, void *arg, size_t *size_out,
+				  enum cbfs_type *type);
 
 struct _cbfs_default_allocator_arg {
 	void *buf;
@@ -240,7 +248,14 @@ static inline void *cbfs_unverified_area_alloc(const char *area, const char *nam
 					       cbfs_allocator_t allocator, void *arg,
 					       size_t *size_out)
 {
-	return _cbfs_unverified_area_alloc(area, name, allocator, arg, size_out);
+	return _cbfs_unverified_area_type_alloc(area, name, allocator, arg, size_out, NULL);
+}
+
+static inline void *cbfs_unverified_area_type_alloc(const char *area, const char *name,
+						    cbfs_allocator_t allocator, void *arg,
+						    size_t *size_out, enum cbfs_type *type)
+{
+	return _cbfs_unverified_area_type_alloc(area, name, allocator, arg, size_out, type);
 }
 
 static inline void *cbfs_map(const char *name, size_t *size_out)
@@ -263,10 +278,16 @@ static inline void *cbfs_ro_type_map(const char *name, size_t *size_out, enum cb
 	return cbfs_ro_type_alloc(name, NULL, NULL, size_out, type);
 }
 
+static inline void *cbfs_unverified_area_type_map(const char *area, const char *name,
+					      size_t *size_out, enum cbfs_type *type)
+{
+	return _cbfs_unverified_area_type_alloc(area, name, NULL, NULL, size_out, type);
+}
+
 static inline void *cbfs_unverified_area_map(const char *area, const char *name,
 					     size_t *size_out)
 {
-	return _cbfs_unverified_area_alloc(area, name, NULL, NULL, size_out);
+	return cbfs_unverified_area_type_map(area, name, size_out, NULL);
 }
 
 static inline size_t _cbfs_load(const char *name, void *buf, size_t size, bool force_ro,
@@ -301,14 +322,21 @@ static inline size_t cbfs_ro_type_load(const char *name, void *buf, size_t size,
 	return _cbfs_load(name, buf, size, true, type);
 }
 
-static inline size_t cbfs_unverified_area_load(const char *area, const char *name,
-					       void *buf, size_t size)
+static inline size_t cbfs_unverified_area_type_load(const char *area, const char *name,
+						    void *buf, size_t size, enum cbfs_type *type)
 {
 	struct _cbfs_default_allocator_arg arg = { .buf = buf, .buf_size = size };
-	if (_cbfs_unverified_area_alloc(area, name, _cbfs_default_allocator, &arg, &size))
+	if (_cbfs_unverified_area_type_alloc(area, name, _cbfs_default_allocator, &arg, &size,
+					     type))
 		return size;
 	else
 		return 0;
+}
+
+static inline size_t cbfs_unverified_area_load(const char *area, const char *name,
+					       void *buf, size_t size)
+{
+	return cbfs_unverified_area_type_load(area, name, buf, size, NULL);
 }
 
 static inline void *cbfs_cbmem_alloc(const char *name, uint32_t cbmem_id, size_t *size_out)

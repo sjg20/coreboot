@@ -498,8 +498,9 @@ void *_cbfs_alloc(const char *name, cbfs_allocator_t allocator, void *arg,
 	return ret;
 }
 
-void *_cbfs_unverified_area_alloc(const char *area, const char *name,
-				  cbfs_allocator_t allocator, void *arg, size_t *size_out)
+void *_cbfs_unverified_area_type_alloc(const char *area, const char *name,
+				  cbfs_allocator_t allocator, void *arg, size_t *size_out,
+				  enum cbfs_type *type)
 {
 	struct region_device area_rdev, file_rdev;
 	union cbfs_mdata mdata;
@@ -517,6 +518,17 @@ void *_cbfs_unverified_area_alloc(const char *area, const char *name,
 
 	if (rdev_chain(&file_rdev, &area_rdev, data_offset, be32toh(mdata.h.len)))
 		return NULL;
+
+	if (type) {
+		const enum cbfs_type real_type = be32toh(mdata.h.type);
+		if (*type == CBFS_TYPE_QUERY)
+			*type = real_type;
+		else if (*type != real_type) {
+			ERROR("'%s' type mismatch (is %u, expected %u)\n",
+			      mdata.h.filename, real_type, *type);
+			return NULL;
+		}
+	}
 
 	return do_alloc(&mdata, &file_rdev, allocator, arg, size_out, true);
 }
