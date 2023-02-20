@@ -64,6 +64,19 @@ int vboot_can_enable_udc(void)
 	return 0;
 }
 
+/* Check if we should start the command-line interpreter */
+int vboot_should_start_cli(void)
+{
+	/* Always disable if not in developer mode */
+	if (!vboot_developer_mode_enabled())
+		return 0;
+	/* Enable if GBB flag is set */
+	if (vboot_is_gbb_flag_set(VB2_GBB_FLAG_ENABLE_CLI))
+		return 1;
+	/* Otherwise disable */
+	return 0;
+}
+
 /* ============================ VBOOT REBOOT ============================== */
 void __weak vboot_platform_prepare_reboot(void)
 {

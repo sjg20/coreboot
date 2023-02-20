@@ -60,6 +60,7 @@ void verstage_mainboard_init(void);
 int vboot_developer_mode_enabled(void);
 int vboot_recovery_mode_enabled(void);
 int vboot_can_enable_udc(void);
+int vboot_should_start_cli(void);
 void vboot_run_logic(void);
 const struct cbfs_boot_device *vboot_get_cbfs_boot_device(void);
 #else /* !CONFIG_VBOOT */
@@ -67,6 +68,10 @@ static inline int vboot_developer_mode_enabled(void) { return 0; }
 static inline int vboot_recovery_mode_enabled(void) { return 0; }
 /* If VBOOT is not enabled, we are okay enabling USB device controller (UDC). */
 static inline int vboot_can_enable_udc(void) { return 1; }
+
+/* the CLI can only be used with VBOOT since it relies on a GBB flag */
+static inline int vboot_should_start_cli(void) { return 0; }
+
 static inline void vboot_run_logic(void) {}
 static inline const struct cbfs_boot_device *vboot_get_cbfs_boot_device(void)
 {
