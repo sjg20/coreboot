@@ -77,9 +77,14 @@ stages can access it. When romstage runs, it copies the CCB out of the cache
 and into CBMEM. Thus it can be used by the following stages which don't have
 access to the cache.
 
-## Future extensions
+Some boards use a signed bootblock which cannot easily be modified after
+building, since it requires resigning parts of the image. To address this, the
+CCB can be stored in CBFS instead, accessed from the romstage. This means it is
+unable to affect the operation of bootblock, of course. This is controlled by
+the CCB_CBFS option. This applies mostly to AMD, since Intel platforms, do not
+have a signed bootblock.
 
-CCB could be stored in a CBFS file.
+## Future extensions
 
 CCB could be stored in an FMAP region.
 

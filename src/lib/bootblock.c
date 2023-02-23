@@ -51,12 +51,21 @@ void bootblock_main_with_timestamp(uint64_t base_timestamp,
 	if (CONFIG(CMOS_POST))
 		cmos_post_init();
 
+	/* if CCB is available without any setup, init it now */
 	if (ENV_HOLDS_CCB)
 		ccb_init();
 
 	if (CONFIG(BOOTBLOCK_CONSOLE)) {
 		console_init();
 		exception_init();
+	}
+
+	/* late init of CCB for when CCB is in CBFS */
+	if (!ENV_HOLDS_CCB) {
+		ccb_init();
+
+		/* check if the console should be silent */
+		console_check_silent();
 	}
 
 	bootblock_soc_init();

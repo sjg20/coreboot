@@ -73,5 +73,20 @@ void ccb_init(void)
 	} else {
 		ccb = cbmem_find(CBMEM_ID_CCB);
 	}
+
+	if (CONFIG(CCB_CBFS)) {
+		struct prog ccb_file = PROG_INIT(PROG_CCB, "ccb");
+		struct region_device rdev;
+		union cbfs_mdata mdata;
+
+		if (_cbfs_boot_lookup(prog_name(&ccb_file), true, &mdata, &rdev))
+			return;
+		if (region_device_sz(&rdev) != sizeof(struct ccb)) {
+			printk(BIOS_ERR, "CCB: Incorect file size in CBFS\n");
+			return;
+		}
+		ccb = rdev_mmap_full(&rdev);
+		return;
+	}
 #endif
 }
