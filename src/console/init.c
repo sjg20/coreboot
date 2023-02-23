@@ -14,6 +14,18 @@
 static int console_inited;
 static int console_loglevel;
 
+/* TODO: Add a CONFIG option to enable the CCB, set up header file, etc. */
+enum ccb_flags {
+	/* can we use BIT()? It seems to be defined in more than one place */
+	CCB_CONSOLE_SILENT	= 1 << 0,
+};
+
+struct ccb {
+	uint32_t flags;
+};
+
+struct ccb ccb __attribute__((section(".init")));
+
 int get_log_level(void)
 {
 	if (console_inited == 0)
@@ -46,6 +58,19 @@ int console_log_level(int msg_level)
 	return 0;
 }
 
+static int check_silent_console(void)
+{
+	if (ENV_BOOTBLOCK) {
+		if (CONFIG(CONSOLE_SILENT_IN_CCB))
+			return ccb.flags & CCB_CONSOLE_SILENT;
+	} else if (CONFIG(CONSOLE_SILENT_IN_TL)) {
+		/* No transfer list (TL) yet, so assume enabled */
+		return false;
+	}
+
+	return false;
+}
+
 void console_init(void)
 {
 	init_log_level();
@@ -56,6 +81,10 @@ void console_init(void)
 	if (CONFIG(EARLY_PCI_BRIDGE) && (ENV_BOOTBLOCK || ENV_ROMSTAGE))
 		pci_early_bridge_init();
 
+	if (CONFIG(CONSOLE_SILENT))
+		console_set_silent(check_silent_console());
+
+	/* to-do: drop this too? */
 	console_hw_init();
 
 	console_inited = 1;
