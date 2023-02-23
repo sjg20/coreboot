@@ -14,6 +14,19 @@
 #include <console/usb.h>
 #include <types.h>
 
+/* 1 if console is silent, meaning there will be no output */
+static int console_silent;
+
+void console_set_silent(int silent)
+{
+	console_silent = silent;
+}
+
+int console_get_silent(void)
+{
+	return console_silent;
+}
+
 /* Note: when adding a new console, make sure you update the definition of
    HAS_ONLY_FAST_CONSOLES in <console.h>! */
 void console_hw_init(void)
@@ -34,6 +47,10 @@ void console_hw_init(void)
 
 void console_interactive_tx_byte(unsigned char byte, void *data_unused)
 {
+	/* for silent console, avoid outputting on the serial console */
+	if (CONFIG(CONSOLE_SILENT) && console_silent)
+		return;
+
 	if (byte == '\n') {
 		/* Some consoles want newline conversion to keep terminals happy. */
 		__uart_tx_byte('\r');
