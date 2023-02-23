@@ -783,12 +783,22 @@ static int cbfs_ccb_set_value(unused const char *name, unused const char *value)
 	if (locate_ccb(&buffer, &ccb))
 		return 1;
 
-	/* For now this code is very simple as we have no settings. */
-	if (1) {
+	/*
+	 * For now this code is very simple as we only have one setting. We can
+	 * expand it with a table when we add more settings.
+	 */
+	if (strcmp(name, "console")) {
 		ERROR("Unknown CCB setting '%s'\n", name);
 		return 1;
 	}
 	val = 0;
+	if (!strcmp(value, "silent")) {
+		val |= CCB_CONSOLE_SILENT;
+	} else if (strcmp(value, "loud")) {
+		ERROR("Unknown console setting '%s' (use silent or loud)\n",
+		      value);
+		return 1;
+	}
 	printf("%s=%s\n", name, value);
 	ccb->flags = val;
 
@@ -810,12 +820,16 @@ static int cbfs_ccb_get_value(unused const char *name)
 
 	if (locate_ccb(&buffer, &ccb))
 		return 1;
-	/* For now this code just shows an error as there are no settings. */
-	if (1) {
+	/*
+	 * For now this code is very simple as we only have one setting. We can
+	 * expand it with a table when we add more settings.
+	 */
+	if (strcmp(name, "console")) {
 		ERROR("Unknown CCB setting '%s'\n", name);
 		return 1;
 	}
-
+	printf("%s=%s\n", name,
+	       ccb->flags & CCB_CONSOLE_SILENT ? "silent" : "loud");
 
 	return 0;
 }
@@ -2168,6 +2182,8 @@ static void usage(char *name)
 			"Get a value from the coreboot Control Block\n"
 	     " configure -n var -V value                                   "
 			"Set a value in the coreboot Control Block\n"
+	     "                                                             "
+			"console: silent/loud\n"
 	     " compact -r image,regions                                    "
 			"Defragment CBFS image.\n"
 	     " copy -r image,regions -R source-region                      "
