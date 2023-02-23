@@ -42,6 +42,7 @@
 	REGION(pdpt, ., 32, 32)
 #endif
 
+	CCB(., 0x10)
 	TIMESTAMP(., 0x200)
 
 #if !CONFIG(NO_CBFS_MCACHE)

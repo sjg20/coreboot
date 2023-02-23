@@ -25,6 +25,7 @@ enum prog_type {
 	PROG_BL32,
 	PROG_POSTCAR,
 	PROG_OPENSBI,
+	PROG_CCB,
 };
 
 /*

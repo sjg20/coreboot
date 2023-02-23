@@ -12,6 +12,7 @@
 #include <boot/tables.h>
 #include <bootstate.h>
 #include <cbmem.h>
+#include <commonlib/ccb_api.h>
 #include <commonlib/console/post_codes.h>
 #include <commonlib/helpers.h>
 #include <console/console.h>
@@ -441,18 +442,19 @@ void main(void)
 	if (ENV_X86)
 		init_timer();
 
+	/*
+	 * CBMEM needs to be recovered because timestamps, ACPI, etc rely on
+	 * the cbmem infrastructure being around. Explicitly recover it.
+	 */
+	cbmem_initialize();
+	ccb_init();
+
 	/* console_init() MUST PRECEDE ALL printk()! Additionally, ensure
 	 * it is the very first thing done in ramstage.*/
 	console_init();
 	post_code(POSTCODE_CONSOLE_READY);
 
 	exception_init();
-
-	/*
-	 * CBMEM needs to be recovered because timestamps, ACPI, etc rely on
-	 * the cbmem infrastructure being around. Explicitly recover it.
-	 */
-	cbmem_initialize();
 
 	timestamp_add_now(TS_RAMSTAGE_START);
 	post_code(POSTCODE_ENTRY_HARDWAREMAIN);

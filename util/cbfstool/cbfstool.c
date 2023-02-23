@@ -18,6 +18,7 @@
 #include <commonlib/bsd/cbfs_private.h>
 #include <commonlib/bsd/compression.h>
 #include <commonlib/bsd/metadata_hash.h>
+#include <commonlib/ccb.h>
 #include <commonlib/fsp.h>
 #include <commonlib/endian.h>
 #include <commonlib/helpers.h>
@@ -108,6 +109,7 @@ static struct param {
 	 */
 	uint32_t ext_win_base;
 	uint32_t ext_win_size;
+	const char *value;
 } param = {
 	/* All variables not listed are initialized as zero. */
 	.arch = CBFS_ARCHITECTURE_UNKNOWN,
@@ -672,6 +674,150 @@ done:
 	free(header);
 	buffer_delete(&buffer);
 	return ret;
+}
+
+/**
+ * locate_ccb() - Locate the coreboot Control Block in the CBFS image
+ *
+ * This is located in the bootblock and has a special signature
+ *
+ * @ccbp: Returns a pointer to the CCB
+ * Return: 0 if OK, 1 on error
+ */
+static int locate_ccb(struct buffer *buffer, struct ccb **ccbp)
+{
+	const struct fmap *fmap = partitioned_file_get_fmap(param.image_file);
+	uint32_t *ptr, *end;
+	char *data;
+	size_t size;
+
+	if (!fmap)
+		goto no_bootblock;
+
+	if (fmap_find_area(fmap, SECTION_NAME_BOOTBLOCK)) {
+		if (!partitioned_file_read_region(buffer, param.image_file,
+						  SECTION_NAME_BOOTBLOCK))
+			goto no_bootblock;
+	} else {
+		if (!partitioned_file_read_region(buffer, param.image_file,
+						  SECTION_NAME_PRIMARY_CBFS))
+			goto no_bootblock;
+	}
+
+	data = buffer_get(buffer);
+	size = buffer_size(buffer);
+
+	for (ptr = (uint32_t *)data, end = (uint32_t *)(data + size); ptr < end;
+	     ptr++) {
+		if (*ptr == CCB_MAGIC) {
+			*ccbp = (struct ccb *)ptr;
+			return 0;
+		}
+	}
+
+	INFO("CCB not in bootblock\n");
+
+	struct cbfs_image image;
+	struct cbfs_file *ccb_file;
+	const char *filename = "ccb";
+	struct buffer ccb_buf;
+
+	if (cbfs_image_from_buffer(&image, param.image_region, param.headeroffset))
+		return 1;
+
+	ccb_file = cbfs_get_entry(&image, filename);
+	if (!ccb_file) {
+		struct cbfs_file *header;
+		struct ccb *ccb;
+		int ret;
+
+		INFO("CCB not in CBFS: creating\n");
+
+		if (buffer_create(&ccb_buf, sizeof(struct ccb), filename))
+			return 1;
+
+		header = cbfs_create_file_header(CBFS_TYPE_RAW, ccb_buf.size,
+						 filename);
+
+		ccb = buffer_get(&ccb_buf);
+		memset(ccb, '\0', sizeof(struct ccb));
+		ccb->magic = CCB_MAGIC;
+
+		ret = cbfs_add_entry(&image, &ccb_buf, 0, header, 0);
+		free(header);
+		buffer_delete(&ccb_buf);
+		if (ret) {
+			ERROR("Failed to add '%s' into ROM image.\n", filename);
+			return 1;
+		}
+	}
+
+	ccb_file = cbfs_get_entry(&image, filename);
+	if (!ccb_file) {
+		ERROR("Cannot add file\n");
+	}
+
+	/* Locate the CCB */
+	*ccbp = (void *)ccb_file + be32toh(ccb_file->offset);
+
+	return 0;
+
+no_bootblock:
+	ERROR("Bootblock not in ROM image?!?\n");
+	return 1;
+}
+
+/**
+ * cbfs_ccb_set_value() - Set the value of an item in the coreboot Control Block
+ *
+ * @name: Name of item to set
+ * @value: Value to set it to
+ * Return: 0 if OK, non-zero on error
+ */
+static int cbfs_ccb_set_value(unused const char *name, unused const char *value)
+{
+	struct buffer buffer;
+	struct ccb *ccb;
+	uint val;
+
+	if (locate_ccb(&buffer, &ccb))
+		return 1;
+
+	/* For now this code is very simple as we have no settings. */
+	if (1) {
+		ERROR("Unknown CCB setting '%s'\n", name);
+		return 1;
+	}
+	val = 0;
+	printf("%s=%s\n", name, value);
+	ccb->flags = val;
+
+	return 0;
+}
+
+/**
+ * cbfs_ccb_get_value() - Get the value of an item in the coreboot Control Block
+ *
+ * This displays the value for the given setting name
+ *
+ * @name: Name of item to get
+ * Return: 0 if OK, non-zero on error
+ */
+static int cbfs_ccb_get_value(unused const char *name)
+{
+	struct buffer buffer;
+	struct ccb *ccb;
+
+	if (locate_ccb(&buffer, &ccb))
+		return 1;
+	/* For now this code just shows an error as there are no settings. */
+	if (1) {
+		ERROR("Unknown CCB setting '%s'\n", name);
+		return 1;
+	}
+
+
+	return 0;
 }
 
 static int is_valid_topswap(void)
@@ -1366,6 +1512,30 @@ static int cbfs_add_integer(void)
 				  param.headeroffset);
 }
 
+static int cbfs_ccb_set(void)
+{
+	if (!param.name) {
+		ERROR("You need to specify -n/--name.\n");
+		return 1;
+	}
+	if (!param.value) {
+		ERROR("You need to specify a value to write.\n");
+		return 1;
+	}
+
+	return cbfs_ccb_set_value(param.name, param.value);
+}
+
+static int cbfs_ccb_get(void)
+{
+	if (!param.name) {
+		ERROR("You need to specify -n/--name.\n");
+		return 1;
+	}
+
+	return cbfs_ccb_get_value(param.name);
+}
+
 static int cbfs_remove(void)
 {
 	if (!param.name) {
@@ -1796,6 +1966,8 @@ static const struct command commands[] = {
 	{"add-master-header", "H:r:vh?j:", cbfs_add_master_header, true, true},
 	{"compact", "r:h?", cbfs_compact, true, true},
 	{"copy", "r:R:h?", cbfs_copy, true, true},
+	{"configure", "n:V:v?", cbfs_ccb_set, true, true},
+	{"configure-get", "n:v?", cbfs_ccb_get, true, true},
 	{"create", "M:r:s:B:b:H:o:m:vh?", cbfs_create, true, true},
 	{"extract", "H:r:m:n:f:Uvh?", cbfs_extract, true, false},
 	{"layout", "wvh?", cbfs_layout, false, false},
@@ -1847,6 +2019,7 @@ static struct option long_options[] = {
 	{"size",          required_argument, 0, 's' },
 	{"type",          required_argument, 0, 't' },
 	{"verbose",       no_argument,       0, 'v' },
+	{"value",         required_argument, 0, 'V' },
 	{"with-readonly", no_argument,       0, 'w' },
 	{"xip",           no_argument,       0, 'y' },
 	{"gen-attribute", no_argument,       0, 'g' },
@@ -1991,6 +2164,10 @@ static void usage(char *name)
 			"Add a legacy CBFS master header\n"
 	     " remove [-r image,regions] -n NAME                           "
 			"Remove a component\n"
+	     " configure-get -n var                                        "
+			"Get a value from the coreboot Control Block\n"
+	     " configure -n var -V value                                   "
+			"Set a value in the coreboot Control Block\n"
 	     " compact -r image,regions                                    "
 			"Defragment CBFS image.\n"
 	     " copy -r image,regions -R source-region                      "
@@ -2298,6 +2475,9 @@ int main(int argc, char **argv)
 			case LONGOPT_MMAP:
 				if (decode_mmap_arg(optarg))
 					return 1;
+				break;
+			case 'V':
+				param.value = optarg;
 				break;
 			case 'h':
 			case '?':

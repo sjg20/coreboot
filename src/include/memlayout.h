@@ -65,6 +65,10 @@
 	REGION(timestamp, addr, size, 8) \
 	_ = ASSERT(size >= 212, "Timestamp region must fit timestamp_cache!");
 
+#define CCB(addr, size) \
+	REGION(ccb, addr, size, 8) \
+	_ = ASSERT(size >= 0x10, "CCB region must fit CCB space!");
+
 #define PRERAM_CBMEM_CONSOLE(addr, size) \
 	REGION(preram_cbmem_console, addr, size, 4)
 

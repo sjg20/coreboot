@@ -29,6 +29,7 @@ extern u8 _dram[];
 
 DECLARE_REGION(sram)
 DECLARE_OPTIONAL_REGION(timestamp)
+DECLARE_OPTIONAL_REGION(ccb)
 DECLARE_REGION(preram_cbmem_console)
 DECLARE_REGION(cbmem_init_hooks)
 DECLARE_REGION(stack)
