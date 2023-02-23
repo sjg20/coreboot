@@ -10,6 +10,20 @@ void console_hw_init(void);
 void console_tx_byte(unsigned char byte);
 void console_tx_flush(void);
 
+/**
+ * console_set_silent() - control whether the console is silenced
+ *
+ * @silent: true to silence the console, false to output as normal
+ */
+void console_set_silent(int silent);
+
+/**
+ * console_get_silent() - Check whether the console is silenced
+ *
+ * Returns: 1 if silenced, 0 if not
+ */
+int console_get_silent(void);
+
 /* Interactive consoles that are usually displayed in real time on a terminal. */
 void console_interactive_tx_byte(unsigned char byte, void *data_unused);
 /* Consoles that store logs on some medium for later retrieval. */
