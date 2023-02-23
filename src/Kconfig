@@ -587,6 +587,47 @@ config MINIMAL_PCI_SCANNING
 	  If this option is enabled, coreboot will scan only PCI devices
 	  marked as mandatory in devicetree.cb
 
+config CCB
+	bool "Enable coreboot control block"
+	default y
+	help
+	  This enables using the coreboot control block (CCB) to set features
+	  at runtime.
+
+	  The CCB is useful for tweaking the operation of coreboot without
+	  rebuilding it, such as enabling / disabling the serial console.
+
+choice
+	prompt "CCB location"
+	depends on CCB
+
+config CCB_BOOTBLOCK
+	bool "Embed coreboot control block in bootblock"
+	depends on CCB
+	help
+	  Enable this to set up the CCB (coreboot control block) in bootblock.
+	  Look for the CCB in the bootblock stage. The CCB is then passed to
+	  the following stages using the cbmem structure.
+
+	  The CCB provides a few simple settings for coreboot which can be
+	  changed using the 'cbfstool set-ccb' command.
+
+	  See Documentation/util/cbfstool/ccb.md for more information.
+
+config CCB_CBFS
+	bool "Read coreboot control block from CBFS"
+	depends on CCB
+	help
+	  Enable this to read the CCB (coreboot control block) from a file in
+	  CBFS. The file is read after CBFS is inited in bootblock.
+
+	  The CCB provides a few simple settings for coreboot which can be
+	  changed using the 'cbfstool set-ccb' command.
+
+	  See Documentation/util/cbfstool/ccb.md for more information.
+
+endchoice
+
 menu "Software Bill Of Materials (SBOM)"
 
 source "src/sbom/Kconfig"

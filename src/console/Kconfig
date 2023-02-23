@@ -428,6 +428,29 @@ config DEFAULT_CONSOLE_LOGLEVEL_0
 
 endchoice
 
+config CONSOLE_SILENT
+	bool "Support silencing the console"
+	default y
+	help
+	  Typically when coreboot is built with the console enabled (e.g.
+	  CONFIG_CONSOLE_SERIAL) the output is always produced. Enable this to
+	  allow control of output at runtime.
+
+	  Note that this only affects the interactive console. Output to
+	  'stored' consoles (e.g. CBMEM) still goes ahead.
+
+	  This is controlled by calling console_set_silent().
+
+config CONSOLE_SILENT_IN_CCB
+	bool "Flag for silencing console is in coreboot control block"
+	depends on CCB_BOOTBLOCK
+	default y
+	help
+	  This enables using the coreboot control block (CCB) to obtain the
+	  console silence flag in the bootblock. This is set to 0 by default,
+	  meaning that the console is active (if enabled) but can be set to 1
+	  by an external tool operating on the image.
+
 config DEFAULT_CONSOLE_LOGLEVEL
 	int
 	default 0 if DEFAULT_CONSOLE_LOGLEVEL_0

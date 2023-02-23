@@ -197,6 +197,13 @@ romstage-y += hexdump.c
 verstage-y += hexdump.c
 smm-y += hexdump.c
 
+bootblock-$(CONFIG_CCB) += ccb.c
+romstage-$(CONFIG_CCB) += ccb.c
+postcar-$(CONFIG_CCB) += ccb.c
+ramstage-$(CONFIG_CCB) += ccb.c
+verstage-$(CONFIG_CCB) += ccb.c
+smm-$(CONFIG_CCB) += ccb.c
+
 bootblock-$(CONFIG_FW_CONFIG) += fw_config.c
 verstage-$(CONFIG_FW_CONFIG) += fw_config.c
 romstage-$(CONFIG_FW_CONFIG) += fw_config.c

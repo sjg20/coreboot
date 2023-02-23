@@ -3,6 +3,8 @@
 #include <acpi/acpi.h>
 #include <arch/exception.h>
 #include <bootblock_common.h>
+#include <cbmem.h>
+#include <commonlib/ccb_api.h>
 #include <console/console.h>
 #include <delay.h>
 #include <metadata_hash.h>
@@ -50,6 +52,9 @@ void bootblock_main_with_timestamp(uint64_t base_timestamp,
 	if (CONFIG(CMOS_POST))
 		cmos_post_init();
 
+	if (ENV_HOLDS_CCB)
+		ccb_init();
+
 	if (CONFIG(BOOTBLOCK_CONSOLE)) {
 		console_init();
 		exception_init();
@@ -64,6 +69,9 @@ void bootblock_main_with_timestamp(uint64_t base_timestamp,
 	}
 
 	timestamp_add_now(TS_BOOTBLOCK_END);
+
+	if (CONFIG(CCB_CBFS))
+		ccb_init();
 
 	run_romstage();
 }
