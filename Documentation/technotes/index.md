@@ -6,3 +6,4 @@
 * [Unit Test Code Coverage](2021-05-code-coverage.md)
 * [Address Sanitizer](asan.md)
 * [coreboot Consoles](console.md)
+* [coreboot Control Block (CCB)](ccb.md)

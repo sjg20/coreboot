@@ -2,6 +2,7 @@
 
 #include <cbfs.h>
 #include <cbmem.h>
+#include <commonlib/ccb_api.h>
 #include <console/console.h>
 #include <fallback.h>
 #include <halt.h>

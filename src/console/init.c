@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 
 #include <commonlib/helpers.h>
+#include <commonlib/ccb_api.h>
 #include <console/cbmem_console.h>
 #include <console/console.h>
 #include <console/uart.h>
@@ -46,6 +47,14 @@ int console_log_level(int msg_level)
 	return 0;
 }
 
+static int check_silent_console(void)
+{
+	if (CONFIG(CONSOLE_SILENT_IN_CCB))
+		return ccb_get_flags() & CCB_CONSOLE_SILENT;
+
+	return false;
+}
+
 void console_init(void)
 {
 	init_log_level();
@@ -55,6 +64,9 @@ void console_init(void)
 
 	if (CONFIG(EARLY_PCI_BRIDGE) && (ENV_BOOTBLOCK || ENV_SEPARATE_ROMSTAGE))
 		pci_early_bridge_init();
+
+	if (CONFIG(CONSOLE_SILENT))
+		console_set_silent(check_silent_console());
 
 	console_hw_init();
 

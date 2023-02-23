@@ -74,6 +74,30 @@ config SPD_CACHE_FMAP_NAME
 	help
 	  Name of the FMAP region created in the default FMAP to cache SPD data.
 
+config CCB
+	bool "Enable coreboot control block"
+	default y
+	help
+	  This enables using the coreboot control block (CCB) to set features
+	  at runtime.
+
+	  The CCB is useful for tweaking the operation of coreboot without
+	  rebuilding it, such as enabling / disabling the serial console.
+
+config BOOTBLOCK_CCB
+	bool "Enable coreboot control block in bootblock"
+	depends on CCB
+	default y
+	help
+	  Enable this to set up the CCB (coreboot control block) in bootblock.
+	  Look for the CCB in the bootblock stage. The CCB is then passed to
+	  the following stages using the cbmem structure.
+
+	  The CCB provides a few simple settings for coreboot which can be
+	  changed using the 'cbfstool set-ccb' command.
+
+	  See Documentation/util/cbfstool/ccb.md for more information.
+#
 if RAMSTAGE_LIBHWBASE && !ROMSTAGE_LIBHWBASE
 
 config HWBASE_DYNAMIC_MMIO
