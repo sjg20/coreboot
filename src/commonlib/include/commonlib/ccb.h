@@ -19,7 +19,7 @@
  * enum ccb_flags - flags for use in the CCB
  */
 enum ccb_flags {
-	DUMMY /* none yet */
+	CCB_CONSOLE_SILENT	= 1 << 0,
 };
 
 /* Magic number at the top of the CCB and used to detect it in the bootblock */
