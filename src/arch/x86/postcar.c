@@ -2,6 +2,7 @@
 
 #include <arch/romstage.h>
 #include <cbmem.h>
+#include <commonlib/ccb_api.h>
 #include <console/console.h>
 #include <cpu/x86/mtrr.h>
 #include <main_decl.h>
@@ -18,8 +19,6 @@ void main(void)
 {
 	late_car_teardown();
 
-	console_init();
-
 	/*
 	 * CBMEM needs to be recovered because timestamps rely on
 	 * the cbmem infrastructure being around. Explicitly recover it.
@@ -29,6 +28,9 @@ void main(void)
 	 */
 	if (!cbmem_online())
 		cbmem_initialize();
+
+	ccb_init();
+	console_init();
 
 	timestamp_add_now(TS_POSTCAR_START);
 
