@@ -3,6 +3,7 @@
 #include <commonlib/ccb_api.h>
 #include <console/console.h>
 #include <cbmem.h>
+#include <symbols.h>
 
 #if ENV_HOLDS_CCB
 struct ccb ccb_static __attribute__((section(".init"))) = {
@@ -41,6 +42,8 @@ CBMEM_READY_HOOK(add_ccb_to_cbmem);
 
 void ccb_init(void)
 {
+	printk(BIOS_DEBUG, "ccb size %d\n", REGION_SIZE(ccb));
+
 #if ENV_HOLDS_CCB
 	ccb = &ccb_static;
 #else
