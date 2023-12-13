@@ -1,9 +1,11 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 
 #include <assert.h>
+#include <cbfs.h>
 #include <cbmem.h>
 #include <commonlib/ccb_api.h>
 #include <console/console.h>
+#include <program_loading.h>
 #include <string.h>
 #include <symbols.h>
 
@@ -62,6 +64,22 @@ void ccb_init(void)
 		memcpy((void *)_ccb, ccb, sizeof(*ccb));
 	}
 #else
+	if (CONFIG(CCB_CBFS)) {
+		struct prog ccb_file =
+			PROG_INIT(PROG_CCB, CONFIG_CBFS_PREFIX "/ccb");
+		struct region_device rdev;
+		union cbfs_mdata mdata;
+
+		if (_cbfs_boot_lookup(prog_name(&ccb_file), true, &mdata, &rdev))
+			return;
+		if (region_device_sz(&rdev) != sizeof(struct ccb)) {
+			printk(BIOS_ERR, "CCB: Incorect file size in CBFS\n");
+			return;
+		}
+		ccb = rdev_mmap_full(&rdev);
+		return;
+	}
+
 	if (ENV_CREATES_CBMEM) {
 		if (!ENV_ROMSTAGE_OR_BEFORE)
 			return;

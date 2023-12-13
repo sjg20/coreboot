@@ -443,7 +443,7 @@ config CONSOLE_SILENT
 
 config CONSOLE_SILENT_IN_CCB
 	bool "Flag for silencing console is in coreboot control block"
-	depends on BOOTBLOCK_CCB
+	depends on CCB_BOOTBLOCK
 	default y
 	help
 	  This enables using the coreboot control block (CCB) to obtain the
