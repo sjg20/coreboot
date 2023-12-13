@@ -65,8 +65,7 @@ void ccb_init(void)
 	}
 #else
 	if (CONFIG(CCB_CBFS)) {
-		struct prog ccb_file =
-			PROG_INIT(PROG_CCB, CONFIG_CBFS_PREFIX "/ccb");
+		struct prog ccb_file = PROG_INIT(PROG_CCB, "ccb");
 		struct region_device rdev;
 		union cbfs_mdata mdata;
 

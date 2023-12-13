@@ -715,9 +715,51 @@ static int locate_ccb(struct buffer *buffer, struct ccb **ccbp)
 		}
 	}
 
-	ERROR("CCB not in bootblock\n");
+	INFO("CCB not in bootblock\n");
 
-	return 1;
+	struct cbfs_image image;
+	struct cbfs_file *ccb_file;
+	const char *filename = "ccb";
+	struct buffer ccb_buf;
+
+	if (cbfs_image_from_buffer(&image, param.image_region, param.headeroffset))
+		return 1;
+
+	ccb_file = cbfs_get_entry(&image, filename);
+	if (!ccb_file) {
+		struct cbfs_file *header;
+		struct ccb *ccb;
+		int ret;
+
+		INFO("CCB not in CBFS: creating\n");
+
+		if (buffer_create(&ccb_buf, sizeof(struct ccb), filename))
+			return 1;
+
+		header = cbfs_create_file_header(CBFS_TYPE_RAW, ccb_buf.size,
+						 filename);
+
+		ccb = buffer_get(&ccb_buf);
+		memset(ccb, '\0', sizeof(struct ccb));
+		ccb->magic = CCB_MAGIC;
+
+		ret = cbfs_add_entry(&image, &ccb_buf, 0, header, 0);
+		free(header);
+		buffer_delete(&ccb_buf);
+		if (ret) {
+			ERROR("Failed to add '%s' into ROM image.\n", filename);
+			return 1;
+		}
+	}
+
+	ccb_file = cbfs_get_entry(&image, filename);
+	if (!ccb_file) {
+		ERROR("Cannot add file\n");
+	}
+
+	*ccbp = (void *)ccb_file + be32toh(ccb_file->offset);
+
+	return 0;
 
 no_bootblock:
 	ERROR("Bootblock not in ROM image?!?\n");
