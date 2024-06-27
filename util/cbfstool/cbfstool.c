@@ -13,6 +13,7 @@
 #include "cbfs_image.h"
 #include "cbfs_sections.h"
 #include "elfparsing.h"
+#include "fmap.h"
 #include "partitioned_file.h"
 #include "lz4/lib/xxhash.h"
 #include <commonlib/bsd/cbfs_private.h>
@@ -725,6 +726,21 @@ static int locate_ccb(struct buffer *buffer, struct ccb **ccbp)
 		INFO("CCB not in bootblock\n");
 	}
 
+	/* Now try FMAP */
+// 	if (!partitioned_file_read_region(buffer, param.image_file, CCB_REGION)) {
+// 		INFO("CCB in FMAP\n");
+// 	}
+
+	const struct fmap_area *area;
+
+	area = fmap_find_area(fmap, CCB_REGION);
+	if (area) {
+		printk(BIOS_ERR, "CCB: Found in FMAP\n");
+		buffer_splice(buffer, buffer, area->offset, area->size);
+		*ccbp = (void *)buffer_get(buffer);
+		return 0;
+	}
+
 	struct cbfs_image image;
 	struct cbfs_file *ccb_file;
 	const char *filename = "ccb";
@@ -762,7 +778,7 @@ static int locate_ccb(struct buffer *buffer, struct ccb **ccbp)
 
 	ccb_file = cbfs_get_entry(&image, filename);
 	if (!ccb_file) {
-		ERROR("Cannot add file\n");
+		ERROR("Cannot get file\n");
 	}
 
 	/* Locate the CCB */

@@ -788,7 +788,8 @@ int cbfs_add_entry(struct cbfs_image *image, struct buffer *buffer,
 				ERROR("Not enough space for header.\n");
 				break;
 			} else if (content_offset + buffer->size > addr_next) {
-				ERROR("Not enough space for content.\n");
+				ERROR("Not enough space for content. content_offset=%x buffer->size=%zx addr_next=%x\n",
+				      content_offset, buffer->size, addr_next);
 				break;
 			}
 		}

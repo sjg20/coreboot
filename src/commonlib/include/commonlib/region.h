@@ -94,6 +94,11 @@ struct region_device {
 		},					\
 	}
 
+static inline bool rdev_valid(const struct region_device *rdev)
+{
+	return rdev->ops != NULL;
+}
+
 /* Helper to dynamically initialize region device. */
 void region_device_init(struct region_device *rdev,
 			const struct region_device_ops *ops, size_t offset,

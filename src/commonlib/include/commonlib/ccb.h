@@ -25,7 +25,11 @@ enum ccb_flags {
 /* Magic number at the top of the CCB and used to detect it in the bootblock */
 #define CCB_MAGIC	0xc043b001
 
+/* Name of CCB FMAP region, if CONFIG_CCB_FMAP is enabled */
 #define CCB_REGION	"CCB"
+
+/* Assumed maximum size of CCB (can be larger than sizeof(struct ccb) */
+#define CCB_MAX_SIZE	0x10
 
 /**
  * struct ccb - Data in the CCB
