@@ -5,6 +5,7 @@
 #include <cbmem.h>
 #include <commonlib/ccb_api.h>
 #include <console/console.h>
+#include <fmap.h>
 #include <program_loading.h>
 #include <string.h>
 #include <symbols.h>
@@ -17,20 +18,21 @@ struct ccb ccb_static __attribute__((__section__(".init"))) = {
 };
 #endif
 
-const struct ccb *ccb;
+static const struct ccb *ccb_glob;
 
 const struct ccb *ccb_get(void)
 {
-	return ccb;
+	return ccb_glob;
 }
 
 int ccb_get_flags(void)
 {
-	return ccb ? ccb->flags : 0;
+	return ccb_glob ? ccb_glob->flags : 0;
 }
 
 static void add_ccb_to_cbmem(int is_recovery)
 {
+	const struct ccb *ccb;
 	struct ccb *ptr;
 
 	ccb = ccb_get();
@@ -45,8 +47,10 @@ static void add_ccb_to_cbmem(int is_recovery)
 
 CBMEM_READY_HOOK(add_ccb_to_cbmem);
 
-void ccb_init(void)
+static struct ccb *locate_ccb(void)
 {
+	struct ccb *ccb;
+
 	/* This function handles three main situations:
 	 *
 	 * 1. (bootblock) The CCB is in a variable. It must be copied into the
@@ -60,9 +64,7 @@ void ccb_init(void)
 	ccb = &ccb_static;
 	if (REGION_SIZE(ccb) < sizeof(*ccb)) {
 		BUG();
-	} else {
-		/* Copy the CCB into the cache for use by romstage. */
-		memcpy((void *)_ccb, ccb, sizeof(*ccb));
+		return NULL;
 	}
 #else
 	if (CONFIG(CCB_CBFS)) {
@@ -70,24 +72,56 @@ void ccb_init(void)
 		struct region_device rdev;
 		union cbfs_mdata mdata;
 
-		if (_cbfs_boot_lookup(prog_name(&ccb_file), true, &mdata, &rdev))
-			return;
+		if (_cbfs_boot_lookup(prog_name(&ccb_file), true, &mdata, &rdev)) {
+			printk(BIOS_WARNING, "CCB: No file in CBFS\n");
+			return NULL;
+		}
 		if (region_device_sz(&rdev) != sizeof(struct ccb)) {
-			printk(BIOS_ERR, "CCB: Incorect file size in CBFS\n");
-			return;
+			printk(BIOS_ERR, "CCB: Incorrect file size in CBFS\n");
+			return NULL;
 		}
 		ccb = rdev_mmap_full(&rdev);
-		return;
+		return ccb;
+	}
+
+	if (CONFIG(CCB_FMAP)) {
+		struct region ar;
+
+		if (fmap_locate_area(CCB_REGION, &ar)) {
+			printk(BIOS_ERR, "CCB: Not found in FMAP\n");
+			return NULL;
+		}
+		// blah blah
 	}
 
 	if (ENV_CREATES_CBMEM) {
 		if (!ENV_ROMSTAGE_OR_BEFORE)
-			return;
+			return NULL;
 
 		/* Point to the cached CCB. This will be added to CBMEM. */
 		ccb = (void *)_ccb;
 	} else {
 		ccb = cbmem_find(CBMEM_ID_CCB);
 	}
+#endif
+
+	return ccb;
+}
+
+void ccb_check(void)
+{
+	if (locate_ccb())
+		printk(BIOS_INFO, "CCB: OK\n");
+	else
+		printk(BIOS_INFO, "CCB: Fail\n");
+}
+
+void ccb_init(void)
+{
+	ccb_glob = locate_ccb();
+
+#if ENV_HOLDS_CCB
+	/* Copy the CCB into the cache for use by romstage. */
+	memcpy((void *)_ccb, ccb_glob, sizeof(*ccb_glob));
 #endif
 }

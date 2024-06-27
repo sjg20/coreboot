@@ -24,6 +24,14 @@ const struct ccb *ccb_get(void);
 int ccb_get_flags(void);
 
 /**
+ * ccb_check() - Check if CCB is working OK
+ *
+ * This can be called after the console is running, to report any errors that
+ * occured when trying to start up the CCB.
+ */
+void ccb_check(void);
+
+/**
  * ccb_init() - Set up the CCB for use
  *
  * This locates the CCB, either built into the stage (typically for bootblock),

@@ -25,6 +25,8 @@ enum ccb_flags {
 /* Magic number at the top of the CCB and used to detect it in the bootblock */
 #define CCB_MAGIC	0xc043b001
 
+#define CCB_REGION	"CCB"
+
 /**
  * struct ccb - Data in the CCB
  *

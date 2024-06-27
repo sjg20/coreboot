@@ -688,6 +688,7 @@ static int locate_ccb(struct buffer *buffer, struct ccb **ccbp)
 {
 	const struct fmap *fmap = partitioned_file_get_fmap(param.image_file);
 	uint32_t *ptr, *end;
+	bool use_bootblock;
 	char *data;
 	size_t size;
 
@@ -695,27 +696,34 @@ static int locate_ccb(struct buffer *buffer, struct ccb **ccbp)
 		goto no_bootblock;
 
 	if (fmap_find_area(fmap, SECTION_NAME_BOOTBLOCK)) {
+		INFO("Reading bootblock\n");
 		if (!partitioned_file_read_region(buffer, param.image_file,
 						  SECTION_NAME_BOOTBLOCK))
 			goto no_bootblock;
+		use_bootblock = true;
 	} else {
+		INFO("Reading CBFS\n");
 		if (!partitioned_file_read_region(buffer, param.image_file,
 						  SECTION_NAME_PRIMARY_CBFS))
 			goto no_bootblock;
+		use_bootblock = false;
 	}
 
-	data = buffer_get(buffer);
-	size = buffer_size(buffer);
+	if (use_bootblock) {
+		data = buffer_get(buffer);
+		size = buffer_size(buffer);
 
-	for (ptr = (uint32_t *)data, end = (uint32_t *)(data + size); ptr < end;
-	     ptr++) {
-		if (*ptr == CCB_MAGIC) {
-			*ccbp = (struct ccb *)ptr;
-			return 0;
+		for (ptr = (uint32_t *)data, end = (uint32_t *)(data + size); ptr < end;
+		ptr++) {
+			if (*ptr == CCB_MAGIC) {
+				*ccbp = (struct ccb *)ptr;
+				INFO("CCB at %p, from size %lx\n", ptr, size);
+				return 0;
+			}
 		}
-	}
 
-	INFO("CCB not in bootblock\n");
+		INFO("CCB not in bootblock\n");
+	}
 
 	struct cbfs_image image;
 	struct cbfs_file *ccb_file;

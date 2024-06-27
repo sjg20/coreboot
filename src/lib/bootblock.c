@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-2.0-only */
+// /* SPDX-License-Identifier: GPL-2.0-only */
 
 #include <acpi/acpi.h>
 #include <arch/exception.h>
@@ -60,6 +60,9 @@ void bootblock_main_with_timestamp(uint64_t base_timestamp,
 		exception_init();
 	}
 
+	if (ENV_HOLDS_CCB)
+		ccb_check();
+
 	bootblock_soc_init();
 	bootblock_mainboard_init();
 
@@ -70,7 +73,7 @@ void bootblock_main_with_timestamp(uint64_t base_timestamp,
 
 	timestamp_add_now(TS_BOOTBLOCK_END);
 
-	if (CONFIG(CCB_CBFS))
+	if (!ENV_HOLDS_CCB)
 		ccb_init();
 
 	run_romstage();

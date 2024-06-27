@@ -616,7 +616,7 @@ config CCB_CBFS
 
 	  See Documentation/util/cbfstool/ccb.md for more information.
 
-config CCB_FIXED
+config CCB_FMAP
 	bool "Read coreboot control block from fixed ROM offset"
 	depends on CCB
 	help
@@ -628,9 +628,9 @@ config CCB_FIXED
 
 	  See Documentation/util/cbfstool/ccb.md for more information.
 
-config CCB_FIXED_OFFSET
+config CCB_FMAP_OFFSET
 	hex "Offset to use for CCB, expressed as an address"
-	depends on CCB_FIXED
+	depends on CCB_FMAP
 	help
 	  Select the offset where the CCB is stored in SPI flash. This should be
 	  a memory-mapped address, e.g. 0xffffff00 rather than the offset from
