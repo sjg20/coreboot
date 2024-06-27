@@ -56,7 +56,10 @@ The CCB is not intended to be stored or generated outside the coreboot build,
 so versioning is not included. In fact, while backwards compatibility should be
 maintained where possible, it is not stictly necessary, since the CCB struct
 does not have any meaning outside coreboot and all of the coreboot stages are
-assumed to be built from the same version of the source code.
+assumed to be built from the same version of the source code. Where this is not
+the case, care should be taken to make changes in a backwards-compatible way,
+e.g. by only adding new flags and fields and avoiding any changes to the meaning
+of existing flags and fields.
 
 Strictly speaking, changing the settings should be done with a cbfstool built
 from the same source, although since the CCB will likely change infrequently,
@@ -77,7 +80,7 @@ Some boards use a signed bootblock which cannot easily be modified after
 building, since it requires resigning parts of the image. To address this, the
 CCB can be stored in CBFS instead, accessed from the romstage. This means it is
 unable to affect the operation of bootblock, of course. This is controlled by
-the CCB_CBFS option. This applied mostly to AMD, since Intel platforms, do not
+the CCB_CBFS option. This applies mostly to AMD, since Intel platforms, do not
 have a signed bootblock.
 
 ## Future extensions

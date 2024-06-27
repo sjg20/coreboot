@@ -616,6 +616,29 @@ config CCB_CBFS
 
 	  See Documentation/util/cbfstool/ccb.md for more information.
 
+config CCB_FIXED
+	bool "Read coreboot control block from fixed ROM offset"
+	depends on CCB
+	help
+	  Enable this to read the CCB (coreboot control block) from a fixed ROM
+	  offset. The file is read after CBFS is inited in bootblock.
+
+	  The CCB provides a few simple settings for coreboot which can be
+	  changed using the 'cbfstool set-ccb' command.
+
+	  See Documentation/util/cbfstool/ccb.md for more information.
+
+config CCB_FIXED_OFFSET
+	hex "Offset to use for CCB, expressed as an address"
+	depends on CCB_FIXED
+	help
+	  Select the offset where the CCB is stored in SPI flash. This should be
+	  a memory-mapped address, e.g. 0xffffff00 rather than the offset from
+	  the start of SPI flash.
+
+	  If the CCB header is not detected at the given address, coreboot will
+	  continue without a CCB.
+
 endchoice
 
 menu "Software Bill Of Materials (SBOM)"

@@ -10,6 +10,7 @@
 #include <symbols.h>
 
 #if ENV_HOLDS_CCB
+qwerfd
 struct ccb ccb_static __attribute__((__section__(".init"))) = {
 	CCB_MAGIC,
 	/* flags must always be zero during the build */
