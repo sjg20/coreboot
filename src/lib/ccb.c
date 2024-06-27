@@ -100,8 +100,10 @@ static struct ccb *locate_ccb(void)
 
 		/* Point to the cached CCB. This will be added to CBMEM. */
 		ccb = (void *)_ccb;
-	} else {
+	} else if (ENV_HAS_CBMEM) {
 		ccb = cbmem_find(CBMEM_ID_CCB);
+		if (!ccb)
+			printk(BIOS_ERR, "CCB: Not found in CBMEM\n");
 	}
 #endif
 
@@ -111,9 +113,7 @@ static struct ccb *locate_ccb(void)
 void ccb_check(void)
 {
 	if (locate_ccb())
-		printk(BIOS_INFO, "CCB: OK\n");
-	else
-		printk(BIOS_INFO, "CCB: Fail\n");
+		printk(BIOS_INFO, "CCB: ready\n");
 }
 
 void ccb_init(void)

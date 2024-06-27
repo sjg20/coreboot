@@ -32,6 +32,8 @@ void main(void)
 	ccb_init();
 	console_init();
 
+	ccb_check();
+
 	timestamp_add_now(TS_POSTCAR_START);
 
 	display_mtrrs();

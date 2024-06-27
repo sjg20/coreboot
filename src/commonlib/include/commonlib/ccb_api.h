@@ -45,6 +45,7 @@ void ccb_init(void);
 
 static inline struct ccb *ccb_get(void) { return NULL; }
 static inline int ccb_get_flags(void) { return 0; }
+static inline void ccb_check(void) {}
 static inline void ccb_init(void) {}
 
 #endif /* CCB_API_H */

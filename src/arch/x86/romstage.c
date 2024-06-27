@@ -15,5 +15,7 @@ asmlinkage void car_stage_entry(void)
 	/* Assumes the hardware was set up during the bootblock */
 	console_init();
 
+	ccb_check();
+
 	romstage_main();
 }
