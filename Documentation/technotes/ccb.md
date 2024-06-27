@@ -84,9 +84,12 @@ unable to affect the operation of bootblock, of course. This is controlled by
 the CCB_CBFS option. This applies mostly to AMD, since Intel platforms, do not
 have a signed bootblock.
 
-## Future extensions
+For boards where it is not possible or desirable to access CBFS files early in
+bootblock, an FMAP region can be used to hold the CCB. Care should be taken that
+this region is in read-only flash, if preventing users from changing it is
+important.
 
-CCB could be stored in an FMAP region.
+## Future extensions
 
 The CMOS option feature (in `include/option.h`) could be expanded to provide an
 API for CCB. Using strings for options might be too inefficient for bootblock,

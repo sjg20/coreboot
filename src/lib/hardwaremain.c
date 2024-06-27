@@ -452,6 +452,7 @@ void main(void)
 	 * it is the very first thing done in ramstage.*/
 	console_init();
 	post_code(POSTCODE_CONSOLE_READY);
+	ccb_check();
 
 	exception_init();
 

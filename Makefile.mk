@@ -485,6 +485,10 @@ CPPFLAGS_common += -I3rdparty
 CPPFLAGS_common += -D__BUILD_DIR__=\"$(obj)\"
 CPPFLAGS_common += -D__COREBOOT__
 
+# Must be >= sizeof(struct ccb)
+CCB_SIZE := 16
+CPPFLAGS_common += -DCCB_SIZE=$(CCB_SIZE)
+
 ifeq ($(BUILD_TIMELESS),1)
 CPPFLAGS_common += -D__TIMELESS__
 endif
@@ -1078,6 +1082,19 @@ else
 FMAP_SPD_CACHE_ENTRY :=
 endif
 
+# Align CCB end so that FMAP doesn't end up in a strange place and bootblock
+# won't fit in what remains
+ifeq ($(CONFIG_CCB_FMAP),y)
+FMAP_CCB_BASE := $(call int-align, $(FMAP_CURRENT_BASE), 0x10)
+FMAP_CCB_SIZE := $(call int-align, $(CCB_SIZE), 0x200)
+FMAP_CCB_ENTRY := CCB@$(FMAP_CCB_BASE) $(FMAP_CCB_SIZE)
+FMAP_CURRENT_BASE := $(call int-add, $(FMAP_CCB_BASE) $(FMAP_CCB_SIZE))
+$(warning FMAP_CCB_SIZE $(FMAP_CCB_SIZE))
+$(warning FMAP_CURRENT_BASE $(FMAP_CURRENT_BASE))
+else
+FMAP_CCB_ENTRY :=
+endif
+
 ifeq ($(CONFIG_VPD),y)
 FMAP_VPD_BASE := $(call int-align, $(FMAP_CURRENT_BASE), 0x4000)
 FMAP_VPD_SIZE := $(CONFIG_VPD_FMAP_SIZE)
@@ -1173,6 +1190,7 @@ $(obj)/fmap.fmd: $(top)/Makefile.mk $(DEFAULT_FLASHMAP) $(obj)/config.h
 	    -e "s,##MRC_CACHE_ENTRY##,$(FMAP_MRC_CACHE_ENTRY)," \
 	    -e "s,##SMMSTORE_ENTRY##,$(FMAP_SMMSTORE_ENTRY)," \
 	    -e "s,##SPD_CACHE_ENTRY##,$(FMAP_SPD_CACHE_ENTRY)," \
+	    -e "s,##CCB_ENTRY##,$(FMAP_CCB_ENTRY)," \
 	    -e "s,##VPD_ENTRY##,$(FMAP_VPD_ENTRY)," \
 	    -e "s,##HSPHY_FW_ENTRY##,$(FMAP_HSPHY_FW_ENTRY)," \
 	    -e "s,##CBFS_BASE##,$(FMAP_CBFS_BASE)," \
@@ -1203,6 +1221,10 @@ ifneq ($(CONFIG_ARCH_X86),y)
 add_bootblock = $(CBFSTOOL) $(1) write -u -r BOOTBLOCK -f $(2)
 endif
 
+ifneq ($(CONFIG_ARCH_X86),)
+add_ccb = $(CBFSTOOL) $(1) write -u -r CCB -f $(2)
+endif
+
 # coreboot.pre doesn't follow the standard Make conventions. It gets modified
 # by multiple rules, and thus we can't compute the dependencies correctly.
 $(shell rm -f $(obj)/coreboot.pre)
@@ -1212,6 +1234,12 @@ $(obj)/coreboot.pre: $$(prebuilt-files) $(CBFSTOOL) $(obj)/fmap.fmap $(obj)/fmap
 	$(CBFSTOOL) $@.tmp create -M $(obj)/fmap.fmap -r $(shell cat $(obj)/fmap.desc)
 	printf "    BOOTBLOCK\n"
 	$(call add_bootblock,$@.tmp,$(objcbfs)/bootblock.bin)
+ifneq ($(CONFIG_CCB_FMAP),)
+	# Force use of shell so these hex values work
+	/usr/bin/printf "\x01\xb0\x43\xc0" >$(objcbfs)/ccb.bin
+	truncate -s $(CCB_SIZE) $(objcbfs)/ccb.bin
+	$(call add_ccb,$@.tmp,$(objcbfs)/ccb.bin)
+endif
 	$(prebuild-files) true
 	mv $@.tmp $@
 else # ifneq ($(CONFIG_UPDATE_IMAGE),y)

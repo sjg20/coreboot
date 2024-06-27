@@ -1150,6 +1150,7 @@ static void create_fmap_template(char *image, int size, const char *layout_fname
 		     "\t\t##MRC_CACHE_ENTRY##\n"
 		     "\t\t##SMMSTORE_ENTRY##\n"
 		     "\t\t##SPD_CACHE_ENTRY##\n"
+		     "\t\t##CCB_ENTRY##\n"
 		     "\t\t##VPD_ENTRY##\n"
 		     "\t\tFMAP@##FMAP_BASE## ##FMAP_SIZE##\n"
 		     "\t\tCOREBOOT(CBFS)@##CBFS_BASE## ##CBFS_SIZE##\n"

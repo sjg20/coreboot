@@ -1,8 +1,9 @@
-/* SPDX-License-Identifier: GPL-2.0-only */
+// /* SPDX-License-Identifier: GPL-2.0-only */
 
 #include <acpi/acpi.h>
 #include <arch/exception.h>
 #include <bootblock_common.h>
+#include <cbmem.h>
 #include <commonlib/ccb_api.h>
 #include <console/console.h>
 #include <delay.h>
@@ -60,7 +61,7 @@ void bootblock_main_with_timestamp(uint64_t base_timestamp,
 		exception_init();
 	}
 
-	/* late init of CCB for when CCB is in CBFS */
+	/* late init of CCB for when CCB is in CBFS or FMAP */
 	if (!ENV_HOLDS_CCB) {
 		ccb_init();
 

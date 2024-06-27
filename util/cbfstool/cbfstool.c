@@ -13,6 +13,7 @@
 #include "cbfs_image.h"
 #include "cbfs_sections.h"
 #include "elfparsing.h"
+#include "fmap.h"
 #include "partitioned_file.h"
 #include "lz4/lib/xxhash.h"
 #include <commonlib/bsd/cbfs_private.h>
@@ -676,18 +677,26 @@ done:
 	return ret;
 }
 
+/* location of CCB, with respect to the image regions (>0 is an error) */
+enum ccb_location {
+	CCB_IN_PRIMARY_CBFS	= 0,
+	CCB_IN_OWN_REGION	= -1,
+	CCB_NOT_FOUND		= 1
+};
+
 /**
  * locate_ccb() - Locate the coreboot Control Block in the CBFS image
  *
  * This is located in the bootblock and has a special signature
  *
  * @ccbp: Returns a pointer to the CCB
- * Return: 0 if OK, 1 on error
+ * Return: 0 if OK, 1 on error, -1 if the CCB region must be written back
  */
 static int locate_ccb(struct buffer *buffer, struct ccb **ccbp)
 {
 	const struct fmap *fmap = partitioned_file_get_fmap(param.image_file);
 	uint32_t *ptr, *end;
+	bool use_bootblock;
 	char *data;
 	size_t size;
 
@@ -695,27 +704,48 @@ static int locate_ccb(struct buffer *buffer, struct ccb **ccbp)
 		goto no_bootblock;
 
 	if (fmap_find_area(fmap, SECTION_NAME_BOOTBLOCK)) {
+		INFO("Reading bootblock\n");
 		if (!partitioned_file_read_region(buffer, param.image_file,
 						  SECTION_NAME_BOOTBLOCK))
 			goto no_bootblock;
+		use_bootblock = true;
 	} else {
+		INFO("Reading CBFS\n");
 		if (!partitioned_file_read_region(buffer, param.image_file,
 						  SECTION_NAME_PRIMARY_CBFS))
 			goto no_bootblock;
+		use_bootblock = false;
 	}
 
-	data = buffer_get(buffer);
-	size = buffer_size(buffer);
+	if (use_bootblock) {
+		data = buffer_get(buffer);
+		size = buffer_size(buffer);
 
-	for (ptr = (uint32_t *)data, end = (uint32_t *)(data + size); ptr < end;
-	     ptr++) {
-		if (*ptr == CCB_MAGIC) {
-			*ccbp = (struct ccb *)ptr;
-			return 0;
+		for (ptr = (uint32_t *)data, end = (uint32_t *)(data + size); ptr < end;
+		ptr++) {
+			if (*ptr == CCB_MAGIC) {
+				*ccbp = (struct ccb *)ptr;
+				INFO("CCB at %p, from size %lx\n", ptr, size);
+				return CCB_IN_PRIMARY_CBFS;
+			}
 		}
+
+		INFO("CCB not in bootblock\n");
 	}
 
-	INFO("CCB not in bootblock\n");
+	/* Now try FMAP */
+	const struct fmap_area *area;
+
+	area = fmap_find_area(fmap, CCB_REGION);
+	if (area) {
+		printk(BIOS_ERR, "CCB: Found in FMAP\n");
+		if (!partitioned_file_read_region(buffer, param.image_file,
+						  CCB_REGION))
+			goto no_bootblock;
+
+		*ccbp = (void *)buffer_get(buffer); // + area->offset;
+		return CCB_IN_OWN_REGION;
+	}
 
 	struct cbfs_image image;
 	struct cbfs_file *ccb_file;
@@ -723,7 +753,7 @@ static int locate_ccb(struct buffer *buffer, struct ccb **ccbp)
 	struct buffer ccb_buf;
 
 	if (cbfs_image_from_buffer(&image, param.image_region, param.headeroffset))
-		return 1;
+		return CCB_NOT_FOUND;
 
 	ccb_file = cbfs_get_entry(&image, filename);
 	if (!ccb_file) {
@@ -734,7 +764,7 @@ static int locate_ccb(struct buffer *buffer, struct ccb **ccbp)
 		INFO("CCB not in CBFS: creating\n");
 
 		if (buffer_create(&ccb_buf, sizeof(struct ccb), filename))
-			return 1;
+			return CCB_NOT_FOUND;
 
 		header = cbfs_create_file_header(CBFS_TYPE_RAW, ccb_buf.size,
 						 filename);
@@ -748,24 +778,24 @@ static int locate_ccb(struct buffer *buffer, struct ccb **ccbp)
 		buffer_delete(&ccb_buf);
 		if (ret) {
 			ERROR("Failed to add '%s' into ROM image.\n", filename);
-			return 1;
+			return CCB_NOT_FOUND;
 		}
 		ccb_file = cbfs_get_entry(&image, filename);
 	}
 
 	if (!ccb_file) {
 		ERROR("Cannot get file\n");
-		return 1;
+		return CCB_NOT_FOUND;
 	}
 
 	/* Locate the CCB */
 	*ccbp = (void *)ccb_file + be32toh(ccb_file->offset);
 
-	return 0;
+	return CCB_IN_PRIMARY_CBFS;
 
 no_bootblock:
 	ERROR("CCB not in ROM image?!?\n");
-	return 1;
+	return CCB_NOT_FOUND;
 }
 
 /**
@@ -777,11 +807,13 @@ no_bootblock:
  */
 static int cbfs_ccb_set_value(unused const char *name, unused const char *value)
 {
+	enum ccb_location ccb_loc;
 	struct buffer buffer;
 	struct ccb *ccb;
 	uint val;
 
-	if (locate_ccb(&buffer, &ccb))
+	ccb_loc = locate_ccb(&buffer, &ccb);
+	if (ccb_loc > 0)
 		return 1;
 
 	/*
@@ -800,8 +832,16 @@ static int cbfs_ccb_set_value(unused const char *name, unused const char *value)
 		      value);
 		return 1;
 	}
+	printf("magic %x old flags %x\n", ccb->magic, ccb->flags);
 	printf("%s=%s\n", name, value);
 	ccb->flags = val;
+	printf("new flags %x %x\n", val, ccb->flags);
+
+	if (ccb_loc == CCB_IN_OWN_REGION) {
+		INFO("Performing operation on '%s' region...\n", CCB_REGION);
+		if (!partitioned_file_write_region(param.image_file, &buffer))
+			return 1;
+	}
 
 	return 0;
 }
@@ -819,8 +859,9 @@ static int cbfs_ccb_get_value(unused const char *name)
 	struct buffer buffer;
 	struct ccb *ccb;
 
-	if (locate_ccb(&buffer, &ccb))
+	if (locate_ccb(&buffer, &ccb) > 0)
 		return 1;
+
 	/*
 	 * For now this code is very simple as we only have one setting. We can
 	 * expand it with a table when we add more settings.
@@ -2581,6 +2622,9 @@ int main(int argc, char **argv)
 			partitioned_file_close(param.image_file);
 			return 1;
 		}
+
+// 		if (commands[i].function == cbfs_ccb_set)
+// 			param.image_region = NULL;
 
 		if (commands[i].modifies_region) {
 			assert(param.image_file);

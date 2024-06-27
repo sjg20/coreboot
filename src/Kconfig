@@ -616,6 +616,18 @@ config CCB_CBFS
 
 	  See Documentation/util/cbfstool/ccb.md for more information.
 
+config CCB_FMAP
+	bool "Read coreboot control block from fixed ROM offset"
+	depends on CCB
+	help
+	  Enable this to read the CCB (coreboot control block) from a fixed ROM
+	  offset. The file is read after CBFS is inited in bootblock.
+
+	  The CCB provides a few simple settings for coreboot which can be
+	  changed using the 'cbfstool set-ccb' command.
+
+	  See Documentation/util/cbfstool/ccb.md for more information.
+
 endchoice
 
 menu "Software Bill Of Materials (SBOM)"
