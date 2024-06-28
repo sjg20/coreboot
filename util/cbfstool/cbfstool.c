@@ -831,6 +831,7 @@ static int cbfs_ccb_set_value(unused const char *name, unused const char *value)
 	printf("magic %x old flags %x\n", ccb->magic, ccb->flags);
 	printf("%s=%s\n", name, value);
 	ccb->flags = val;
+	printf("new flags %x %x\n", val, ccb->flags);
 
 	return 0;
 }
@@ -2013,8 +2014,8 @@ static const struct command commands[] = {
 	{"add-master-header", "H:r:vh?j:", cbfs_add_master_header, true, true},
 	{"compact", "r:h?", cbfs_compact, true, true},
 	{"copy", "r:R:h?", cbfs_copy, true, true},
-	{"configure", "n:V:v?", cbfs_ccb_set, false, true},
-	{"configure-get", "n:v?", cbfs_ccb_get, false, true},
+	{"configure", "n:V:v?", cbfs_ccb_set, true, true},
+	{"configure-get", "n:v?", cbfs_ccb_get, true, false},
 	{"create", "M:r:s:B:b:H:o:m:vh?", cbfs_create, true, true},
 	{"extract", "H:r:m:n:f:Uvh?", cbfs_extract, true, false},
 	{"layout", "wvh?", cbfs_layout, false, false},
@@ -2610,6 +2611,9 @@ int main(int argc, char **argv)
 			partitioned_file_close(param.image_file);
 			return 1;
 		}
+
+// 		if (commands[i].function == cbfs_ccb_set)
+// 			param.image_region = NULL;
 
 		if (commands[i].modifies_region) {
 			assert(param.image_file);
