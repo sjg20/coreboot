@@ -1235,7 +1235,8 @@ $(obj)/coreboot.pre: $$(prebuilt-files) $(CBFSTOOL) $(obj)/fmap.fmap $(obj)/fmap
 	printf "    BOOTBLOCK\n"
 	$(call add_bootblock,$@.tmp,$(objcbfs)/bootblock.bin)
 ifneq ($(CONFIG_CCB_FMAP),)
-	echo -en \\xc0\\x43\\xb0\\x01 >$(objcbfs)/ccb.bin
+	# Force use of shell so these hex values work
+	/usr/bin/printf "\x01\xb0\x43\xc0" >$(objcbfs)/ccb.bin
 	truncate -s $(CCB_SIZE) $(objcbfs)/ccb.bin
 	$(call add_ccb,$@.tmp,$(objcbfs)/ccb.bin)
 endif

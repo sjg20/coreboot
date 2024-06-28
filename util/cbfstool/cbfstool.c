@@ -736,8 +736,13 @@ static int locate_ccb(struct buffer *buffer, struct ccb **ccbp)
 	area = fmap_find_area(fmap, CCB_REGION);
 	if (area) {
 		printk(BIOS_ERR, "CCB: Found in FMAP\n");
-		buffer_splice(buffer, buffer, area->offset, area->size);
-		*ccbp = (void *)buffer_get(buffer);
+		if (!partitioned_file_read_region(buffer, param.image_file,
+						  CCB_REGION))
+			goto no_bootblock;
+// 		buffer_clone(buffer, &param.image_file->buffer);
+
+// 		buffer_splice(buffer, buffer, area->offset, area->size);
+		*ccbp = (void *)buffer_get(buffer); // + area->offset;
 		return 0;
 	}
 
@@ -774,9 +779,9 @@ static int locate_ccb(struct buffer *buffer, struct ccb **ccbp)
 			ERROR("Failed to add '%s' into ROM image.\n", filename);
 			return 1;
 		}
+		ccb_file = cbfs_get_entry(&image, filename);
 	}
 
-	ccb_file = cbfs_get_entry(&image, filename);
 	if (!ccb_file) {
 		ERROR("Cannot get file\n");
 	}
@@ -787,7 +792,7 @@ static int locate_ccb(struct buffer *buffer, struct ccb **ccbp)
 	return 0;
 
 no_bootblock:
-	ERROR("Bootblock not in ROM image?!?\n");
+	ERROR("CCB not in ROM image?!?\n");
 	return 1;
 }
 
@@ -823,6 +828,7 @@ static int cbfs_ccb_set_value(unused const char *name, unused const char *value)
 		      value);
 		return 1;
 	}
+	printf("magic %x old flags %x\n", ccb->magic, ccb->flags);
 	printf("%s=%s\n", name, value);
 	ccb->flags = val;
 
@@ -2007,8 +2013,8 @@ static const struct command commands[] = {
 	{"add-master-header", "H:r:vh?j:", cbfs_add_master_header, true, true},
 	{"compact", "r:h?", cbfs_compact, true, true},
 	{"copy", "r:R:h?", cbfs_copy, true, true},
-	{"configure", "n:V:v?", cbfs_ccb_set, true, true},
-	{"configure-get", "n:v?", cbfs_ccb_get, true, true},
+	{"configure", "n:V:v?", cbfs_ccb_set, false, true},
+	{"configure-get", "n:v?", cbfs_ccb_get, false, true},
 	{"create", "M:r:s:B:b:H:o:m:vh?", cbfs_create, true, true},
 	{"extract", "H:r:m:n:f:Uvh?", cbfs_extract, true, false},
 	{"layout", "wvh?", cbfs_layout, false, false},

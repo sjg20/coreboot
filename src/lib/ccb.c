@@ -20,7 +20,7 @@ struct ccb ccb_static __attribute__((__section__(".init"))) = {
 _Static_assert(sizeof(struct ccb) <= CCB_SIZE, \
 	       "CCB_SIZE must be no smaller than sizeof(struct ccb must)");
 
-
+static struct ccb ccb_holder;
 static const struct ccb *ccb_glob;
 
 const struct ccb *ccb_get(void)
@@ -98,9 +98,7 @@ static struct ccb *locate_ccb(struct region_device *rdev)
 			return NULL;
 		}
 		printk(BIOS_ERR, "CCB: Found in FMAP\n");
-		return NULL;
-
-		// blah blah
+		return ccb;
 	}
 
 	if (ENV_CREATES_CBMEM) {
@@ -127,6 +125,7 @@ void ccb_check(void)
 	ccb = locate_ccb(&rdev);
 	if (ccb) {
 		printk(BIOS_INFO, "CCB: ready\n");
+		printk(BIOS_INFO, "magic %x, flags %x\n", ccb->magic, ccb->flags);
 		if (rdev_valid(&rdev))
 			rdev_munmap(&rdev, ccb);
 	}
@@ -143,6 +142,8 @@ void ccb_init(void)
 	/* Copy the CCB into the cache for use by romstage. */
 	memcpy((void *)_ccb, ccb, sizeof(*ccb));
 #endif
+	ccb_holder = *ccb;
+	ccb = &ccb_holder;
 
 	if (rdev_valid(&rdev))
 		rdev_munmap(&rdev, ccb);
