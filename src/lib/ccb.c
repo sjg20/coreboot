@@ -138,13 +138,18 @@ void ccb_init(void)
 
 	ccb = locate_ccb(&rdev);
 
+	if (ccb) {
 #if ENV_HOLDS_CCB
-	/* Copy the CCB into the cache for use by romstage. */
-	memcpy((void *)_ccb, ccb, sizeof(*ccb));
+		/* Copy the CCB into the cache for use by romstage. */
+		memcpy((void *)_ccb, ccb, sizeof(*ccb));
 #endif
-	ccb_holder = *ccb;
-	ccb = &ccb_holder;
 
-	if (rdev_valid(&rdev))
-		rdev_munmap(&rdev, ccb);
+		if (rdev_valid(&rdev)) {
+			ccb_holder = *ccb;
+			ccb = &ccb_holder;
+			rdev_munmap(&rdev, ccb);
+		}
+		printk(BIOS_INFO, "ccb flags %x\n", ccb->flags);
+		ccb_glob = ccb;
+	}
 }

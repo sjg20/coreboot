@@ -52,13 +52,16 @@ void bootblock_main_with_timestamp(uint64_t base_timestamp,
 	if (CONFIG(CMOS_POST))
 		cmos_post_init();
 
-	if (ENV_HOLDS_CCB)
+// 	if (ENV_HOLDS_CCB)
 		ccb_init();
 
 	if (CONFIG(BOOTBLOCK_CONSOLE)) {
 		console_init();
 		exception_init();
 	}
+
+	if (!ENV_HOLDS_CCB)
+		ccb_init();
 
 	if (ENV_HOLDS_CCB)
 		ccb_check();
@@ -72,9 +75,6 @@ void bootblock_main_with_timestamp(uint64_t base_timestamp,
 	}
 
 	timestamp_add_now(TS_BOOTBLOCK_END);
-
-	if (!ENV_HOLDS_CCB)
-		ccb_init();
 
 	run_romstage();
 }
