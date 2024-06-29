@@ -127,7 +127,6 @@ void ccb_check(void)
 	ccb = locate_ccb(&rdev);
 	if (ccb) {
 		printk(BIOS_DEBUG, "CCB: ready\n");
-		printk(BIOS_DEBUG, "magic %x, flags %x\n", ccb->magic, ccb->flags);
 		if (rdev_valid(&rdev))
 			rdev_munmap(&rdev, ccb);
 	}
@@ -142,7 +141,8 @@ void ccb_init(void)
 
 	if (ccb) {
 #if ENV_BOOTBLOCK
-		/* Copy the CCB into the cache for use by romstage. */
+		/* Copy the CCB into the cache for use by romstage. In the event
+		 * that ccb is missing, zero values will be used */
 		memcpy((void *)_ccb, ccb, sizeof(*ccb));
 #endif
 

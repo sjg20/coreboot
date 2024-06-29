@@ -35,7 +35,8 @@ So far, apart from the magic number, the CCB consists only of a set of flags,
 
 The CCB magic number is chosen so that it is very unlikey to appear in normal
 bootblock code. The CCB_MAGIC is never used in the code itself, only in
-cbfstool.
+cbfstool when using CONFIG_CCB_BOOTBLOCK. This is because the bootblock CCB is
+in a global region set at link-time.
 
 ## Extending CCB
 
