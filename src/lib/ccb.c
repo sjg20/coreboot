@@ -97,7 +97,7 @@ static struct ccb *locate_ccb(struct region_device *rdev)
 			printk(BIOS_ERR, "CCB: Cannot map\n");
 			return NULL;
 		}
-		printk(BIOS_ERR, "CCB: Found in FMAP\n");
+		printk(BIOS_DEBUG, "CCB: Found in FMAP\n");
 		return ccb;
 	}
 

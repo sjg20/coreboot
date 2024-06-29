@@ -52,7 +52,7 @@ void bootblock_main_with_timestamp(uint64_t base_timestamp,
 	if (CONFIG(CMOS_POST))
 		cmos_post_init();
 
-// 	if (ENV_HOLDS_CCB)
+	if (ENV_HOLDS_CCB)
 		ccb_init();
 
 	if (CONFIG(BOOTBLOCK_CONSOLE)) {
@@ -63,8 +63,7 @@ void bootblock_main_with_timestamp(uint64_t base_timestamp,
 	if (!ENV_HOLDS_CCB)
 		ccb_init();
 
-	if (ENV_HOLDS_CCB)
-		ccb_check();
+	ccb_check();
 
 	bootblock_soc_init();
 	bootblock_mainboard_init();

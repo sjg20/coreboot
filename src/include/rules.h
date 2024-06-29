@@ -303,6 +303,7 @@
 #define ENV_HAS_CBMEM		(ENV_CREATES_CBMEM || ENV_POSTCAR || ENV_RAMSTAGE)
 #define ENV_RAMINIT		(ENV_SEPARATE_ROMSTAGE || (ENV_BOOTBLOCK && !CONFIG(SEPARATE_ROMSTAGE)))
 
+/* this stage contains coreboot Control Block (CCB) embedded within it */
 #define ENV_HOLDS_CCB		(ENV_BOOTBLOCK && CONFIG(CCB_BOOTBLOCK))
 
 #if ENV_X86
