@@ -71,6 +71,20 @@ static struct ccb *locate_ccb(struct region_device *rdev)
 		return NULL;
 	}
 #else
+	if (ENV_CREATES_CBMEM) {
+		if (!ENV_ROMSTAGE_OR_BEFORE)
+			return NULL;
+
+		/* Point to the cached CCB. This will be added to CBMEM. */
+		ccb = (void *)_ccb;
+		return ccb;
+	} else if (ENV_HAS_CBMEM) {
+		ccb = cbmem_find(CBMEM_ID_CCB);
+		if (!ccb)
+			printk(BIOS_ERR, "CCB: Not found in CBMEM\n");
+		return ccb;
+	}
+
 	if (CONFIG(CCB_CBFS)) {
 		struct prog ccb_file = PROG_INIT(PROG_CCB, "ccb");
 		union cbfs_mdata mdata;
@@ -100,18 +114,6 @@ static struct ccb *locate_ccb(struct region_device *rdev)
 		printk(BIOS_DEBUG, "CCB: Found in FMAP\n");
 		return ccb;
 	}
-
-	if (ENV_CREATES_CBMEM) {
-		if (!ENV_ROMSTAGE_OR_BEFORE)
-			return NULL;
-
-		/* Point to the cached CCB. This will be added to CBMEM. */
-		ccb = (void *)_ccb;
-	} else if (ENV_HAS_CBMEM) {
-		ccb = cbmem_find(CBMEM_ID_CCB);
-		if (!ccb)
-			printk(BIOS_ERR, "CCB: Not found in CBMEM\n");
-	}
 #endif
 
 	return ccb;
@@ -124,8 +126,8 @@ void ccb_check(void)
 
 	ccb = locate_ccb(&rdev);
 	if (ccb) {
-		printk(BIOS_INFO, "CCB: ready\n");
-		printk(BIOS_INFO, "magic %x, flags %x\n", ccb->magic, ccb->flags);
+		printk(BIOS_DEBUG, "CCB: ready\n");
+		printk(BIOS_DEBUG, "magic %x, flags %x\n", ccb->magic, ccb->flags);
 		if (rdev_valid(&rdev))
 			rdev_munmap(&rdev, ccb);
 	}
@@ -139,7 +141,7 @@ void ccb_init(void)
 	ccb = locate_ccb(&rdev);
 
 	if (ccb) {
-#if ENV_HOLDS_CCB
+#if ENV_BOOTBLOCK
 		/* Copy the CCB into the cache for use by romstage. */
 		memcpy((void *)_ccb, ccb, sizeof(*ccb));
 #endif
@@ -149,7 +151,6 @@ void ccb_init(void)
 			ccb = &ccb_holder;
 			rdev_munmap(&rdev, ccb);
 		}
-		printk(BIOS_INFO, "ccb flags %x\n", ccb->flags);
 		ccb_glob = ccb;
 	}
 }

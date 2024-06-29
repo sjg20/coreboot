@@ -50,6 +50,7 @@ static inline int get_console_loglevel(void)
 #if __CONSOLE_ENABLE__
 int get_log_level(void);
 void console_init(void);
+void console_check_silent(void);
 int console_log_level(int msg_level);
 
 int printk(int msg_level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
@@ -77,6 +78,7 @@ enum { CONSOLE_LOG_NONE = 0, CONSOLE_LOG_FAST, CONSOLE_LOG_ALL };
 #else
 static inline int get_log_level(void) { return -1; }
 static inline void console_init(void) {}
+static inline void console_check_silent(void) {}
 static inline int console_log_level(int msg_level) { return 0; }
 static inline int
 	__attribute__((format(printf, 2, 3)))

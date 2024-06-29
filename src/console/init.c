@@ -55,6 +55,12 @@ static int check_silent_console(void)
 	return false;
 }
 
+void console_check_silent(void)
+{
+	if (CONFIG(CONSOLE_SILENT))
+		console_set_silent(check_silent_console());
+}
+
 void console_init(void)
 {
 	init_log_level();
@@ -65,8 +71,7 @@ void console_init(void)
 	if (CONFIG(EARLY_PCI_BRIDGE) && (ENV_BOOTBLOCK || ENV_SEPARATE_ROMSTAGE))
 		pci_early_bridge_init();
 
-	if (CONFIG(CONSOLE_SILENT))
-		console_set_silent(check_silent_console());
+	console_check_silent();
 
 	console_hw_init();
 
